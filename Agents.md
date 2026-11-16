@@ -8,10 +8,10 @@ usa únicamente sus textos de contexto y la ficha temática correspondiente en
 `insumos/`, y cita la evidencia disponible. No existe un agente mediador ni un
 tercer agente cloud dentro de la configuración OpenCode.
 
-La interfaz web utiliza por separado un modelo alojado mediante OpenAI API.
-Esta integración web no convierte al proveedor en un tercer agente y no
-requiere que Ollama esté ejecutándose. La app enruta automáticamente entre los
-dos especialistas o permite seleccionar uno.
+La interfaz web también usa Qwen local servido por Ollama, con perfiles de
+especialidad y enrutamiento equivalentes. No crea un tercer agente ni requiere
+OpenAI API. Ollama debe estar disponible desde el computador que ejecuta
+Streamlit.
 
 ## Agente Catastro
 
@@ -60,10 +60,10 @@ Debe:
 
 ## Memoria y privacidad
 
-La app web no lee ni escribe el archivo de memoria del proyecto y no guarda las
-conversaciones. Las consultas y los extractos documentales seleccionados se
-envían al proveedor de IA configurado en servidor. No ingresar información
-personal, confidencial, identificadores prediales sensibles ni expedientes.
+La app web no lee ni escribe el archivo de memoria del proyecto ni guarda las
+conversaciones en archivos. El texto de la consulta se procesa localmente por
+Ollama/Qwen. No ingresar información personal, confidencial, identificadores
+prediales sensibles ni expedientes.
 
 En OpenCode, cualquier lectura o actualización manual de `memoria/` requiere
 solicitud explícita del usuario. Nunca guardar secretos ni transcripciones.

@@ -15,9 +15,10 @@ app para que las respuestas puedan citar páginas y documentos oficiales.
 - Una resolución puede haber sido modificada. La ficha registra cambios
   confirmados al momento de la consulta, no reemplaza la lectura del texto
   consolidado, el Diario Oficial ni el concepto de la autoridad competente.
-- La aplicación envía la consulta y extractos de estas fichas a OpenAI API.
-  No introducir datos personales, identificadores prediales sensibles,
-  expedientes reservados ni credenciales.
+- La aplicación procesa la consulta y extractos con Ollama/Qwen local por
+  defecto. Si se configura un endpoint remoto, revisar sus controles de
+  privacidad antes de enviar datos. No introducir datos personales,
+  identificadores prediales sensibles, expedientes reservados ni credenciales.
 - Los archivos se conservan en Git como referencias bibliográficas en texto.
   Los documentos enlazados siguen alojados en sus sitios oficiales para evitar
   duplicar PDFs voluminosos o copias que queden desactualizadas.
@@ -47,24 +48,21 @@ Ver [geodesia_fuentes.txt](geodesia_fuentes.txt). Referencias prioritarias:
 - EPSG:9377 y publicaciones de SIRGAS para definición del CRS, realización
   MAGNA-SIRGAS, época y coordenadas.
 
-## Aplicación web
+## Ejecución local
 
-Referencias oficiales consultadas para integrar el modelo remoto y desplegar
-Streamlit:
+La app local se conecta a Ollama en `http://localhost:11434/api/chat` y usa
+`qwen3:8b` por defecto. Streamlit Community Cloud no puede acceder al
+`localhost` del computador del usuario. Para usar un host remoto, configurarlo
+en una red privada y restringir el acceso.
 
-- GPT-5.4 mini, características y disponibilidad:
-  https://developers.openai.com/api/docs/models/gpt-5.4-mini
-- API Chat Completions, parámetros y formato de respuesta:
-  https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create
-- Autenticación con clave API y recomendaciones de protección:
-  https://developers.openai.com/api/docs/guides/production-best-practices
-- Despliegue Streamlit Community Cloud:
-  https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy
-- Gestión de secretos en Community Cloud:
-  https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/secrets-management
+Referencias oficiales:
 
-El modelo API requiere una cuenta y clave propias con facturación/límites
-habilitados. Una suscripción a ChatGPT no implica acceso gratuito a OpenAI API.
+- Descargar e instalar Ollama:
+  https://ollama.com/download
+- API de chat de Ollama:
+  https://docs.ollama.com/api/chat
+- Modelo Qwen3:
+  https://ollama.com/library/qwen3
 
 ## Actualización de fuentes
 

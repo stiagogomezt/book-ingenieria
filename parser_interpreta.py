@@ -75,8 +75,8 @@ def build_config(definitions: dict[str, str]) -> dict[str, Any]:
                 "settings": {"baseURL": definitions["local_endpoint"]},
                 "models": {
                     local_model_id: {
-                        "name": "Qwen 2.5 7B (local, 8 GB)",
-                        "limit": {"context": 32768, "output": 4096},
+                        "name": f"{local_model_id} (local)",
+                        "limit": {"context": 40960, "output": 4096},
                     }
                 },
             }

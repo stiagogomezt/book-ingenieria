@@ -1,27 +1,25 @@
 # Bitácora de actualización: Baúl de Ingeniería
 
-## Objetivo de esta entrega
+## Estado actual
 
-Corregir la dependencia errónea de Ollama local en la app web, definir solo los
-dos especialistas requeridos, mejorar la identidad visual y crear una carpeta
-de fuentes técnicas oficiales actualizadas.
+La app Streamlit y los dos agentes OpenCode usan Qwen3 8B servido por Ollama
+local. Se eliminó la dependencia web de OpenAI API y de sus Secrets. La app
+requiere que Ollama esté disponible desde el computador donde corre Streamlit.
 
-## Arquitectura
+## Agentes y ejecución
 
-- La interfaz Streamlit consume OpenAI Chat Completions por HTTPS.
-- Modelo web predeterminado: `gpt-5.4-mini`, configurable por
-  `OPENAI_MODEL`.
-- La clave `OPENAI_API_KEY` se lee únicamente desde `st.secrets` o una variable
-  de entorno del servidor.
-- La configuración declarativa OpenCode define exactamente dos agentes:
-  `agente_catastro` y `agente_geodesia`. Ambos usan el modelo local declarado
-  en `Config.md`; Ollama se requiere solo para OpenCode, no para la app web.
-- El enrutamiento automático es una función de la UI, no un tercer agente.
+- La configuración OpenCode define exactamente dos especialistas: `agente_catastro`
+  y `agente_geodesia`, ambos con `ollama/qwen3:8b`.
+- La app web usa el mismo modelo local, con selector de especialista y
+  enrutamiento automático. No crea un tercer agente.
+- Ollama expone OpenAI-compatible `/v1` para OpenCode y `/api/chat` para la app
+  Streamlit.
+- El modelo se puede cambiar con `OLLAMA_MODEL`; el servidor, con
+  `OLLAMA_BASE_URL`.
 
-Cada consulta que llega al modelo hace una llamada de generación y otra de
-revisión. Ambas son facturables. La app envía pregunta, historial reciente y
-extractos locales a la API. No envía la memoria del proyecto y no persiste
-conversaciones ni notas automáticamente.
+Cada consulta hace una llamada de generación y otra de revisión con Qwen local.
+La app no envía consultas a un proveedor externo, no lee la memoria del
+proyecto y no guarda las conversaciones en archivos.
 
 ## Diseño
 
@@ -29,8 +27,7 @@ Se reemplazaron el estilo genérico de tarjetas redondeadas y los mensajes de
 “privado/local” por una dirección visual editorial: papel cartográfico cálido,
 tipografía serif, retícula topográfica y señalética inspirada en una bitácora
 de campo. La portada muestra exclusivamente Catastro y Geodesia. La barra
-lateral indica configuración del proveedor, modelo, especialistas y alcance de
-privacidad.
+lateral muestra el estado de Ollama y del modelo.
 
 ## Referencias incorporadas
 
@@ -46,30 +43,25 @@ Fuentes oficiales verificadas al 15-11-2026 incluyen:
 - Resolución IGAC 941/2026, que derogó la Resolución 620/2008 para avalúos.
 - Resoluciones IGAC 370/2021, 1468/2021 y 515/2026.
 - Resolución IGAC 715/2018, Red Geodésica Nacional, EPSG y SIRGAS.
-- Documentación oficial de OpenAI API y Streamlit Community Cloud para modelo,
-  despliegue y secretos.
+- Documentación oficial de Ollama y su API local.
 
 Se actualizaron las notas de avalúos para no presentar la Resolución 620/2008
 como vigente, y las de geodesia para explicar QGeoidCOL2023, la implementación
 progresiva y la transición desde GEOCOL 2004.
 
-## Verificaciones requeridas
+## Verificaciones
 
 - Compilar `app_baul.py` y `parser_interpreta.py`.
-- Ejecutar smoke tests de interfaz y de los dos modos especialistas.
+- Ejecutar smoke tests de interfaz y los dos especialistas.
 - Generar `opencode.json` y confirmar que contenga exactamente dos agentes.
-- Simular llamadas a API para probar generación, revisión, credencial ausente,
-  error de conexión, HTTP 401 y HTTP 429.
-- No realizar una llamada real sin una clave API proporcionada por el usuario.
+- Simular generación y revisión con el endpoint Ollama local.
 
 ## Limitaciones
 
-- OpenAI API requiere clave y facturación separadas de ChatGPT. No hay
-  credenciales en el repositorio ni en esta sesión.
-- No se ha creado un despliegue público de Streamlit Community Cloud. Requiere
-  que el propietario conecte GitHub y configure sus Secrets.
+- Streamlit Community Cloud no puede acceder al `localhost` del computador del
+  usuario. Un despliegue remoto requiere que Ollama esté en una red privada
+  accesible y protegida.
 - La interfaz no consulta páginas web en tiempo real. Las fuentes enlazadas
   deben ser revisadas nuevamente antes de actuaciones catastrales, valuatorias
   o geodésicas.
-- Las verificaciones de API son simuladas hasta que el usuario configure una
-  clave válida.
+- No se hizo una generación real en Ollama durante esta actualización.

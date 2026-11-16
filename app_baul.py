@@ -1,4 +1,4 @@
-"""Streamlit application for the Baúl de Ingeniería cloud assistant."""
+"""Streamlit application for the local Baúl de Ingeniería Qwen assistant."""
 
 from __future__ import annotations
 
@@ -13,14 +13,18 @@ import streamlit as st
 
 
 ROOT = Path(__file__).resolve().parent
+OLLAMA_BASE_URL = os.environ.get(
+    "OLLAMA_BASE_URL", "http://localhost:11434"
+).rstrip("/")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:8b").strip()
+OLLAMA_CHAT_URL = f"{OLLAMA_BASE_URL}/api/chat"
+OLLAMA_TAGS_URL = f"{OLLAMA_BASE_URL}/api/tags"
 CONTEXT_FILES = {
     "Catastro": sorted((ROOT / "contexto_catastro").glob("*.txt"))
     + sorted((ROOT / "insumos").glob("catastro_*.txt")),
     "Geodesia": sorted((ROOT / "contexto_geodesia").glob("*.txt"))
     + sorted((ROOT / "insumos").glob("geodesia_*.txt")),
 }
-OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
-OPENAI_MODEL_DEFAULT = "gpt-5.4-mini"
 MAX_CONTEXT_CHARS = 50_000
 MAX_EVIDENCE_ITEMS = 6
 MAX_EVIDENCE_CHARS = 10_000
@@ -262,71 +266,50 @@ def build_system_prompt(
     return common
 
 
-def get_api_key() -> str:
-    """Read the API credential from deployment secrets or the environment."""
-    env_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if env_key:
-        return env_key
-
-    if not any(
-        Path(path).is_file()
-        for path in st.config.get_option("secrets.files")
-    ):
-        return ""
+@st.cache_data(ttl=15, show_spinner=False)
+def ollama_status() -> tuple[bool, bool]:
+    """Check local Ollama availability and whether the configured model is installed."""
     try:
-        secret = st.secrets.get("OPENAI_API_KEY", "")
-    except (AttributeError, KeyError, FileNotFoundError):
-        secret = ""
-    return str(secret or "").strip()
-
-
-def get_model_name() -> str:
-    env_model = os.environ.get("OPENAI_MODEL", "").strip()
-    if env_model:
-        return env_model
-
-    if not any(
-        Path(path).is_file()
-        for path in st.config.get_option("secrets.files")
-    ):
-        return OPENAI_MODEL_DEFAULT
-    try:
-        secret = st.secrets.get("OPENAI_MODEL", "")
-    except (AttributeError, KeyError, FileNotFoundError):
-        secret = ""
-    return str(secret or OPENAI_MODEL_DEFAULT).strip()
-
-
-def cloud_status() -> tuple[bool, str]:
-    """Return whether the cloud model is configured and which model is selected."""
-    return bool(get_api_key()), get_model_name()
-
-
-def cloud_chat(messages: list[dict[str, str]], timeout: int = 180) -> str:
-    """Call the OpenAI cloud API without exposing credentials to the browser."""
-    api_key = get_api_key()
-    if not api_key:
-        raise RuntimeError(
-            "Falta configurar OPENAI_API_KEY en Streamlit Secrets o en el entorno."
+        response = requests.get(OLLAMA_TAGS_URL, timeout=2.5)
+        response.raise_for_status()
+        model_names = [
+            item.get("name", "")
+            for item in response.json().get("models", [])
+            if isinstance(item, dict)
+        ]
+        model_ready = any(
+            name == OLLAMA_MODEL or name.startswith(f"{OLLAMA_MODEL}:")
+            for name in model_names
         )
+        return True, model_ready
+    except (requests.RequestException, ValueError, TypeError):
+        return False, False
+
+
+def qwen_chat(messages: list[dict[str, str]], timeout: int = 600) -> str:
+    """Generate a response with the local Qwen model served by Ollama."""
     payload: dict[str, Any] = {
-        "model": get_model_name(),
+        "model": OLLAMA_MODEL,
         "messages": messages,
-        "max_completion_tokens": 3500,
-        "reasoning_effort": "medium",
+        "stream": False,
+        "think": False,
+        "keep_alive": "10m",
+        "options": {
+            "num_ctx": 8192,
+            "num_predict": 1400,
+            "temperature": 0.3,
+        },
     }
     response = requests.post(
-        OPENAI_CHAT_URL,
+        OLLAMA_CHAT_URL,
         json=payload,
-        headers={"Authorization": f"Bearer {api_key}"},
         timeout=timeout,
     )
     response.raise_for_status()
     data = response.json()
-    choices = data.get("choices", [])
-    content = choices[0].get("message", {}).get("content") if choices else None
+    content = data.get("message", {}).get("content")
     if not isinstance(content, str) or not content.strip():
-        raise ValueError("El proveedor devolvió una respuesta vacía o inesperada.")
+        raise ValueError("Ollama devolvió una respuesta vacía o inesperada.")
     return content.strip()
 
 
@@ -336,7 +319,7 @@ def review_answer(
     evidence_items: list[dict[str, Any]],
     depth: str,
 ) -> str:
-    """Run a second cloud-model pass against the same specialist evidence."""
+    """Run a second local Qwen pass against the same specialist evidence."""
     evidence_text = "\n\n".join(
         f"[{item['id']}] Tema: {item['topic']} | Archivo: {item['file']}\n"
         f"{item['passage']}"
@@ -361,9 +344,9 @@ def review_answer(
         f"{evidence_text or '[Sin extractos recuperados del contexto local.]'}\n\n"
         f"BORRADOR A REVISAR:\n{draft}"
     )
-    return cloud_chat(
+    return qwen_chat(
         [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        timeout=180,
+        timeout=600,
     )
 
 
@@ -612,17 +595,21 @@ def main() -> None:
             value="Experta",
             help="La respuesta experta incluye análisis, supuestos, pasos y cautelas.",
         )
-        api_configured, model_name = cloud_status()
-        status_class = "status-online" if api_configured else "status-offline"
-        status_title = "Credencial configurada" if api_configured else "Falta configurar la API"
+        ollama_online, model_ready = ollama_status()
+        status_class = "status-online" if model_ready else "status-offline"
+        status_title = "Qwen local listo" if model_ready else "Qwen no disponible"
         status_detail = (
-            f"Modelo alojado · {model_name}"
-            if api_configured
-            else "Añade OPENAI_API_KEY en Streamlit Secrets"
+            f"Ollama conectado · {OLLAMA_MODEL}"
+            if model_ready
+            else (
+                f"Modelo no descargado · ejecuta ollama pull {OLLAMA_MODEL}"
+                if ollama_online
+                else "Inicia Ollama en este computador"
+            )
         )
         st.markdown(
             f"""
-            <div class="section-label">Modelo de la app web</div>
+            <div class="section-label">Modelo local</div>
             <div class="status-card">
               <div class="status-dot {status_class}"></div>
               <div>
@@ -633,15 +620,13 @@ def main() -> None:
             """,
             unsafe_allow_html=True,
         )
-        st.caption(f"Proveedor · OpenAI API · `{model_name}`")
-        st.caption(
-            "Esto no cambia los agentes OpenCode, que siguen usando Qwen local."
-        )
+        st.caption(f"Motor · Ollama · `{OLLAMA_MODEL}`")
+        st.caption("La app usa Qwen local, el mismo modelo de los agentes OpenCode.")
         st.markdown('<div class="section-label">Tu espacio</div>', unsafe_allow_html=True)
         st.caption(f"{len(CONTEXT_FILES['Catastro'])} documentos catastrales")
         st.caption(f"{len(CONTEXT_FILES['Geodesia'])} documentos geodésicos")
         st.caption("Búsqueda local de evidencia · revisión técnica")
-        st.caption("La consulta se envía a OpenAI API; el chat no se persiste en este proyecto.")
+        st.caption("La consulta se procesa localmente; el chat no se guarda en archivos.")
         if st.button("Limpiar conversación"):
             if "conversations" in st.session_state:
                 st.session_state.conversations[workflow] = []
@@ -684,7 +669,7 @@ def main() -> None:
                     label=f"Asignado a {', '.join(topics)} · buscando evidencia...",
                     state="running",
                 )
-                draft = cloud_chat(request_messages)
+                draft = qwen_chat(request_messages)
                 pipeline.update(
                     label="Revisando rigor técnico, cifras y citas...",
                     state="running",
@@ -705,29 +690,33 @@ def main() -> None:
                 )
             except requests.ConnectionError:
                 answer = (
-                    "No fue posible conectar con el servicio de IA. Comprueba "
-                    "la conexión a internet e inténtalo de nuevo."
+                    "No fue posible conectar con Ollama. Inícialo en este "
+                    "computador y confirma que responda en "
+                    f"`{OLLAMA_BASE_URL}`."
                 )
-                pipeline.update(label="Servicio de IA no disponible", state="error")
+                pipeline.update(label="Ollama no está disponible", state="error")
                 st.error(answer)
             except requests.Timeout:
-                answer = "La solicitud excedió el tiempo de espera. Inténtalo otra vez."
+                answer = "Qwen tardó demasiado en responder. Inténtalo otra vez."
                 pipeline.update(label="La solicitud excedió el tiempo", state="error")
                 st.error(answer)
             except requests.RequestException as exc:
                 status_code = exc.response.status_code if exc.response is not None else None
                 if status_code == 401:
-                    answer = "La clave de API no fue aceptada. Revisa OPENAI_API_KEY en Secrets."
+                    answer = "Ollama rechazó la solicitud. Revisa el servidor configurado."
                 elif status_code == 429:
-                    answer = "El proveedor rechazó la solicitud por límite o saldo. Revisa tu cuenta de API."
+                    answer = "Ollama está ocupado o alcanzó su límite. Espera e inténtalo otra vez."
                 elif status_code == 404:
-                    answer = f"No se encontró el modelo `{model_name}`. Revisa OPENAI_MODEL."
+                    answer = (
+                        f"No está instalado `{OLLAMA_MODEL}`. En una terminal "
+                        f"ejecuta `ollama pull {OLLAMA_MODEL}`."
+                    )
                 else:
-                    answer = "Hubo un problema al comunicarse con el proveedor de IA."
-                pipeline.update(label="Error de comunicación con el proveedor", state="error")
+                    answer = "Hubo un problema al comunicarse con Ollama."
+                pipeline.update(label="Error de comunicación con Ollama", state="error")
                 st.error(answer)
             except (ValueError, KeyError) as exc:
-                answer = f"No se pudo interpretar la respuesta del proveedor: {exc}"
+                answer = f"No se pudo interpretar la respuesta de Ollama: {exc}"
                 pipeline.update(label="Respuesta de IA no válida", state="error")
                 st.error(answer)
             except RuntimeError as exc:
@@ -735,8 +724,8 @@ def main() -> None:
                 pipeline.update(label="Configuración incompleta", state="error")
                 st.error(answer)
         if not answer.startswith(
-            ("No fue posible", "La solicitud excedió", "Hubo un problema",
-             "La clave de API", "El proveedor rechazó", "No se encontró el modelo",
+            ("No fue posible", "Qwen tardó", "Hubo un problema",
+             "Ollama rechazó", "Ollama está ocupado", "No está instalado",
              "No se pudo interpretar", "Falta configurar")
         ):
             st.markdown(answer)
@@ -753,8 +742,8 @@ def main() -> None:
         message_data["evidence"] = evidence
     messages.append(message_data)
     if answer.startswith(
-        ("No fue posible", "La solicitud excedió", "Hubo un problema",
-         "La clave de API", "El proveedor rechazó", "No se encontró el modelo",
+        ("No fue posible", "Qwen tardó", "Hubo un problema",
+         "Ollama rechazó", "Ollama está ocupado", "No está instalado",
          "No se pudo interpretar", "Falta configurar")
     ):
         return
