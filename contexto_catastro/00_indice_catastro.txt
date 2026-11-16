@@ -1,0 +1,67 @@
+BAÚL DE INGENIERÍA | ÍNDICE TÉCNICO DE CATASTRO
+Versión inicial: 2026-11-15
+
+1. Catastro Multipropósito en Colombia
+-------------------------------------
+El catastro es el inventario actualizado y sistemático de los bienes inmuebles
+del país, con información física, jurídica y económica, además de componentes
+materiales para la gestión territorial. La gestión catastral se articula con el
+Registro de Instrumentos Públicos, pero catastro y registro tienen funciones
+distintas: la inscripción catastral no constituye título de dominio ni sanea
+por sí sola la tradición. El IGAC es la autoridad nacional de regulación
+catastral y también gestor catastral en los ámbitos que le corresponden; hay
+gestores habilitados para sus respectivas jurisdicciones.
+
+2. Avalúo catastral
+-------------------
+El avalúo catastral es una estimación administrativa del valor del inmueble,
+calculada según la metodología y vigencia aplicables. Puede considerar terreno,
+construcciones, uso/destino, zonas homogéneas y condiciones del mercado,
+conforme a la regulación vigente. No equivale necesariamente al precio de
+venta, avalúo comercial ni base fiscal de todos los tributos. Para responder
+casos concretos, indicar vigencia, jurisdicción, metodología y fuente oficial.
+
+3. Mutaciones catastrales
+-------------------------
+Las mutaciones reflejan cambios que deben incorporarse a la base catastral.
+La clasificación usual comprende:
+
+Primera clase: cambio de propietario, poseedor u ocupante, según corresponda,
+con soporte y alcance definidos por la normativa.
+Segunda clase: cambios en la forma o configuración del predio, incluidos
+englobes y desenglobes, y otras modificaciones físicas que alteren su unidad.
+Tercera clase: cambios en el destino económico o uso catastral del inmueble.
+Cuarta clase: revisión del avalúo catastral, cuando proceda conforme al trámite
+y a las reglas vigentes.
+Quinta clase: incorporación de predios o mejoras y demás cambios que no
+correspondan a las clases anteriores, según la regulación aplicable.
+
+La denominación y el trámite exacto deben cotejarse con la resolución vigente
+del IGAC y los procedimientos del gestor catastral competente. No inferir
+requisitos documentales a partir de esta síntesis.
+
+4. Englobes y desenglobes
+-------------------------
+Englobe: integración catastral de dos o más unidades inmobiliarias en una nueva
+unidad, sujeta a los actos, títulos, licencias y verificaciones que correspondan.
+Desenglobe: división de un predio en unidades resultantes. La actualización
+catastral debe mantener trazabilidad entre predios de origen y resultado, áreas,
+identificadores y soportes. La inscripción catastral no reemplaza licencias,
+escrituras ni registro inmobiliario.
+
+5. Linderos y áreas
+-------------------
+Describir linderos de forma inequívoca, vinculándolos a puntos, segmentos,
+colindantes y sistema de referencia cuando haya levantamiento georreferenciado.
+Distinguir área jurídica, área levantada y área catastral; pueden diferir por
+métodos, tolerancias, épocas o calidad de los insumos. Documentar método,
+precisión, datum/CRS, unidades, fuentes y discrepancias. No ajustar geometrías
+para forzar coincidencia sin soporte técnico y jurídico.
+
+6. Control de calidad y fuentes
+-------------------------------
+Verificar la fecha de vigencia de normas, resoluciones, especificaciones
+técnicas y procedimientos del gestor. Priorizar documentos oficiales del IGAC,
+la SNR y la autoridad competente. En cálculos, declarar unidades, sistema de
+referencia, escala, método y supuestos; diferenciar dato confirmado de
+orientación general.

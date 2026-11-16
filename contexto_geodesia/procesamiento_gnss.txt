@@ -1,0 +1,133 @@
+BAÚL DE INGENIERÍA | METODOLOGÍAS DE POSICIONAMIENTO GNSS
+Investigación sintetizada: 15 de noviembre de 2026
+
+Fuentes consultadas:
+- Procedimiento IGAC PC-GEO-03, procesamiento, almacenamiento y publicación
+  de información GNSS, vigente desde 05-11-2024:
+  https://www.igac.gov.co/sites/default/files/listadomaestro/PC-GEO-03%20Procesamiento%2C%20Almacenamiento%20y%20Publicaci%C3%B3n%20de%20Informaci%C3%B3n%20GNSS_0.pdf
+- Instructivo IGAC de procesamiento en línea con estaciones cGNSS, vigente
+  desde 26-08-2026:
+  https://www.igac.gov.co/sites/default/files/listadomaestro/IN-GEO-PC04-03%20M%C3%B3dulo%20de%20Procesamiento.pdf
+- Instructivo IGAC de correcciones en tiempo real, vigente desde 26-08-2026:
+  https://www.igac.gov.co/sites/default/files/listadomaestro/IN-GEO-PC04-02%20Correcciones%20En%20Tiempo%20Real.pdf
+- Instructivo IGAC PPP, vigente desde 26-08-2026:
+  https://www.igac.gov.co/sites/default/files/listadomaestro/IN-GEO-PC04-04%20M%C3%B3dulo%20Posicionamiento%20Puntual%20Preciso%20%28PPP%29%20%28CCGN%29.pdf
+- NOAA NGS, guía de usuario RT:
+  https://www.ngs.noaa.gov/PUBS_LIB/UserGuidelinesForSingleBaseRealTimeGNSSPositioningv.3.1APR2014-1.pdf
+
+1. PRINCIPIOS Y PLANIFICACIÓN
+-----------------------------
+GNSS estima posición y tiempo a partir de observaciones de código y fase de
+portadora de constelaciones (GPS, GLONASS, Galileo, BeiDou, entre otras). La
+precisión depende de geometría y número de satélites, frecuencia/señales,
+obstrucciones, multitrayectoria, ionosfera, troposfera, calibración de antena,
+distancia a base, duración y estrategia de procesamiento.
+
+Antes de salir a campo, definir precisión requerida, sistema de referencia y
+época, control disponible, método, intervalo de registro, máscara de elevación,
+constelaciones, frecuencia, altura de antena y manera independiente de
+verificar. Inspeccionar cielo, materialización y seguridad. Registrar operador,
+equipo/serial, antena, alturas y método de medición, hora, clima/entorno,
+esquema, fotos, croquis y archivos crudos.
+
+No prometer una precisión fija por el nombre del método. Especificaciones
+IGAC, proyecto y condiciones de campo prevalecen. Procesar datos crudos,
+revisar residuos, RMS, desviaciones, ambigüedades, saltos de ciclo, número de
+satélites, GDOP y redundancia. El valor de GDOP/RMS es indicador, no garantía
+única de exactitud.
+
+2. POSICIONAMIENTO ESTÁTICO DIFERENCIAL
+---------------------------------------
+Dos o más receptores registran simultáneamente observaciones mientras
+permanecen estacionarios en puntos durante una sesión. Una base de coordenadas
+conocidas y el receptor móvil permiten formar líneas base por diferencias de
+fase; se postprocesan con órbitas/relojes, modelos y datos de referencia
+adecuados. Es apropiado para control geodésico y líneas base donde se necesita
+precisión alta. Duraciones más largas, líneas base más extensas o condiciones
+malas exigen planificación y evaluación adicional.
+
+Flujo recomendado:
+1. Verificar control, antenas, centros, alturas y compatibilidad de observables.
+2. Sincronizar sesiones, registrar archivos completos y metadatos.
+3. Descargar RINEX de bases/cGNSS apropiadas y efemérides disponibles.
+4. Procesar líneas base, resolver ambigüedades y revisar residuos/estadísticas.
+5. Ajustar la red con pesos y restricciones justificadas, analizar cierres y
+   detectar errores groseros.
+6. Transformar al marco y época oficial requerida, incluyendo propagación de
+   coordenadas/velocidades cuando aplique.
+7. Entregar informe, datos fuente, configuración y coordenadas con incertidumbre.
+
+El estático rápido usa sesiones más cortas y geometría/distancia/calidad más
+favorables, con menor robustez que sesiones estáticas largas. Los tiempos de
+rastreo no son universales; seguir la especificación IGAC/proyecto vigente.
+
+3. CINEMÁTICO Y PPK
+-------------------
+En cinemático, una base registra observaciones mientras el rover se desplaza.
+La trayectoria se obtiene estimando posiciones en épocas sucesivas; se requiere
+seguimiento continuo y conservar resolución de ambigüedades. Pérdidas de
+seguimiento, obstrucciones y cambios bruscos pueden causar reinicializaciones
+y segmentos con menor calidad.
+
+PPK (Post-Processed Kinematic) registra datos crudos de base y rover y calcula
+correcciones después del trabajo de campo. Es útil cuando no se necesita
+solución inmediata o la comunicación falla. Requiere sincronización temporal,
+datos comunes, distancias y estaciones apropiadas, datos completos y control
+de calidad de la trayectoria. Inspeccionar soluciones fija/flotante,
+discontinuidades, covarianzas, número de satélites y puntos de control.
+
+Plan de campo: iniciar/parar sesiones de manera documentada, mantener el equipo
+en seguimiento, guardar RINEX/archivos nativos y repetir tramos/puntos de
+control; revisar continuidad y geometría. No presentar una trayectoria como
+centimétrica sin validación independiente.
+
+4. RTK / NTRIP
+---------------
+RTK (Real Time Kinematic) es posicionamiento relativo de fase con correcciones
+en tiempo real desde una base conocida al rover. Las correcciones pueden llegar
+por radio o red de estaciones (por ejemplo, NTRIP). El rover resuelve
+ambigüedades en campo; la solución fija ("fixed") suele ser más robusta que
+"float", pero ambas necesitan inspección.
+
+Flujo básico:
+1. Configurar base con coordenadas correctas en marco/época especificados o
+   conectarse a red de referencia configurada.
+2. Configurar enlace de correcciones, mountpoint/protocolo, constelaciones,
+   datum, antenas y altura de bastón/base.
+3. Inicializar; observar estado de solución, satélites comunes, PDOP, edad de
+   corrección, distancia a base y calidad de enlace.
+4. Comprobar un punto conocido antes del levantamiento y reocupar puntos de
+   control al final.
+5. Guardar coordenadas, solución, épocas, precisión indicada y metadatos.
+6. Revisar redundancia y tolerancias del proyecto; si se pierde enlace o
+   ambigüedad, reinicializar y repetir control.
+
+La precisión centimétrica relativa es posible con equipo, condiciones y
+procedimiento adecuados, pero no está garantizada por RTK/NTRIP como etiqueta.
+Líneas base largas, ionosfera, multipath, radio/interferencia, mala geometría,
+coordenadas erradas de base y alturas de antena mal medidas causan sesgos.
+La verificación independiente es esencial para puntos críticos.
+
+5. PPP Y SERVICIOS DE PROCESAMIENTO
+-----------------------------------
+PPP usa observaciones de un receptor junto con órbitas y relojes precisos y
+modelos de sesgo, sin línea base local obligatoria. Puede procesarse después
+de campo o en servicios que soporten tiempo real. Convergencia y precisión
+dependen de duración, señales, productos, errores y modelo. IGAC ofrece
+servicios y guías para RINEX y procesamiento de referencia. PPP no es
+intercambiable automáticamente con una solución local RTK ni garantiza
+resultado instantáneo.
+
+6. ALTURAS, DATOS Y REPORTE
+---------------------------
+GNSS entrega inicialmente altura elipsoidal respecto al elipsoide. Para altura
+ortométrica se requiere modelo geoidal/cuasi-geoidal y referencia vertical
+compatibles. Identificar h, H, N y signo, modelo/versión, datum vertical y
+calidad del punto de control. No comparar alturas de referencias distintas sin
+transformación.
+
+Archivar RINEX, archivos crudos, logs, datos de estaciones, efemérides,
+calibración/offset de antena, informe de procesamiento y coordenadas finales.
+Reportar sistema de referencia, realización/época, CRS horizontal y vertical,
+unidades, método, equipo, duraciones, líneas base, solución, incertidumbre,
+controles independientes, procesamiento y limitaciones.

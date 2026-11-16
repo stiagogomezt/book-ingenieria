@@ -1,0 +1,154 @@
+BAÚL DE INGENIERÍA | AVALÚOS Y LINDEROS
+Investigación sintetizada: 15 de noviembre de 2026
+
+AVISO
+-----
+Síntesis de orientación técnica. La norma vigente, la finalidad del avalúo,
+la jurisdicción y el procedimiento concreto determinan requisitos y método.
+Una consulta sobre un inmueble real requiere documentos, inspección y
+profesional competente; esta nota no constituye avalúo ni concepto jurídico.
+
+Fuentes oficiales consultadas:
+- Resolución IGAC 1040 de 2023, modificada parcialmente por 746 de 2024 y
+  794 de 2026:
+  https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-1040-de-2023
+- Resolución IGAC 620 de 2008, procedimientos de avalúos dentro del marco de
+  la Ley 388 de 1997:
+  https://www.igac.gov.co/sites/default/files/2022-05/resolucion_620de2008.pdf
+- Procedimiento IGAC PC-VAL-03, avalúos comerciales, versión 1 vigente desde
+  30-07-2025:
+  https://www.igac.gov.co/sites/default/files/listadomaestro/PC-VAL-03%20Avaluos%20Comerciales_1.pdf
+- Decreto 1420 de 1998, compilado en Decreto 1170 de 2015:
+  https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=1508
+- Decreto 148 de 2020:
+  https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=105952
+
+1. AVALÚO COMERCIAL Y AVALÚO CATASTRAL
+--------------------------------------
+Avalúo comercial: estimación técnica del precio más probable de transacción
+del inmueble en un mercado, suponiendo partes informadas y actuando libremente,
+con consideración de las condiciones físicas y jurídicas relevantes. La
+finalidad define la base de valor y alcance; por ejemplo, negociación,
+indemnización, contabilidad, servidumbre o efecto urbanístico no son
+automáticamente encargos equivalentes.
+
+Avalúo catastral: valor resultante de ejercicio técnico dentro de procesos
+catastrales para identificar el componente económico del predio. Puede ser
+individual o masivo según proceso y norma. No es sinónimo de precio de venta,
+valor hipotecario o avalúo comercial individual. El Decreto 148/2020 incluye
+la regla de que el avalúo catastral no será inferior al 60% del comercial ni
+superior al valor comercial, sujeto al marco aplicable y sus modificaciones.
+Revisar el texto consolidado y la finalidad antes de trasladar esa regla a un
+caso particular.
+
+En ejercicios masivos, el valor debe representar el mercado y el contexto
+territorial usando información de mercado, tipología, uso, suelo, construcción
+y otros factores reglados. Los valores por zonas/modelos no suponen que todos
+los inmuebles de una zona sean idénticos; los casos atípicos y la calidad de
+datos requieren análisis y mecanismos de revisión.
+
+2. MÉTODOS DE VALORACIÓN COMERCIAL
+----------------------------------
+La Resolución 620 de 2008 describe métodos que se deben seleccionar según la
+naturaleza del bien, propósito, información y marco legal. La guía/procedimiento
+IGAC vigente PC-VAL-03 (2025) también relaciona:
+
+a) Comparación o mercado: recopilar ofertas y transacciones recientes de
+inmuebles comparables, depurar fuentes, verificar condiciones, ajustar por
+localización, uso, área, frente, acceso, topografía, norma urbanística,
+servicios, estado, negociación y fecha. Sustentar homogeneización y valor
+unitario. Una oferta no es automáticamente una transacción cerrada.
+
+b) Capitalización de rentas o ingresos: estimar ingresos atribuibles al
+inmueble y convertirlos a valor presente mediante tasa de capitalización o
+descuento acorde con riesgo, mercado, vacancia, costos y horizonte. Explicitar
+ingreso bruto/neto, crecimiento, tasa, vida remanente y supuestos.
+
+c) Costo de reposición: estimar costo actual de reproducir o reemplazar
+construcciones/mejoras de utilidad equivalente y deducir depreciación física,
+funcional y económica según condición y vida útil; adicionar el valor del
+terreno cuando el método y finalidad lo requieran. No usar costo histórico
+como sustituto del costo actual.
+
+d) Técnica residual: estimar valor del suelo a partir del valor de ventas del
+proyecto hipotético permitido por la norma urbanística, menos costos, gastos,
+financiación, comercialización y utilidad/desarrollo esperados, con
+temporalidad y absorción de mercado justificadas. Es sensible a supuestos y
+no debe extrapolarse sin pruebas.
+
+La selección debe corresponder al objeto valuado, disponibilidad y calidad de
+mercado, restricciones, norma de uso y propósito. Métodos múltiples pueden
+servir de contraste, pero discrepancias requieren explicación, no promedio
+automático. Informe: fecha de valor, inspección, derechos/limitaciones
+analizados, áreas, metodología, evidencias, cálculos, supuestos, exclusiones y
+conclusión.
+
+3. COMPONENTE ECONÓMICO CATASTRAL
+---------------------------------
+La Resolución 1040 consolidada y sus modificaciones regulan la determinación
+económica masiva de valores comerciales y avalúos catastrales en procesos
+catastrales. La norma contempla comparación/mercado, renta/ingreso, costo de
+reposición y residual, con aplicación masiva o puntual según casos. Se debe
+corregir rezagos/disparidades que provengan de transformaciones físicas, uso,
+productividad, obras y dinámica local, de acuerdo con evidencia y proceso.
+
+En general, describir separadamente terreno y construcciones puede ser
+necesario según tipo de predio y especificación. En propiedad horizontal puede
+aplicarse valor integral según reglas vigentes. No mezclar la evaluación
+comercial puntual con el avalúo masivo del proceso catastral ni inventar una
+actualización del valor por fuera del acto y calendario aplicables. Revisar
+anexos y especificaciones de la versión vigente de la Resolución 1040.
+
+4. LINDEROS, ÁREAS Y RECTIFICACIONES
+------------------------------------
+Lindero es la línea divisoria entre inmuebles, materializada o no. Debe poder
+identificarse espacialmente, con continuidad, vértices, colindantes, elementos
+físicos y soporte. Distinguir:
+- área de título/registro (jurídica);
+- área levantada o geométrica (resultado del método y representación);
+- área incorporada en catastro.
+
+Las diferencias pueden provenir de descripciones antiguas, unidades
+costumbristas, métodos y precisiones distintos, errores de transcripción,
+cambios físicos o conflictos reales. No seleccionar automáticamente el área
+mayor/menor ni modificar un polígono para forzar coincidencia.
+
+El Decreto 148 de 2020, el Decreto 1170 de 2015 y la Resolución Conjunta IGAC
+1101/SNR 11344 de 2020 contemplan procedimientos con efectos registrales,
+entre ellos actualización de linderos, rectificación de área por imprecisa
+determinación, rectificación de linderos por acuerdo, inclusión de área/
+linderos y procedimientos masivos en los eventos regulados. Las condiciones
+incluyen título/folio, verificabilidad, acuerdo cuando corresponda, tolerancias,
+protección de terceros y acto de autoridad competente.
+
+Guía de decisión inicial:
+1. Verificar matrícula, título, plano, base catastral, antecedentes y
+   autoridad/gestor competente.
+2. Identificar si el error es solo de captura catastral, si el lindero es
+   técnicamente verificable sin variación, si el área fue imprecisamente
+   determinada, o si existe divergencia física/jurídica.
+3. Levantar y describir técnicamente todos los linderos relevantes con método,
+   CRS, época, unidad, precisión, monumentación, colindantes y fuentes.
+4. Consultar la tolerancia aplicable. No inventar porcentaje de tolerancia ni
+   asumir que tolerancia elimina el análisis jurídico.
+5. Verificar acuerdo de colindantes, afectación de terceros, bienes públicos,
+   áreas protegidas, restricciones y posible conflicto de propiedad.
+6. Determinar si el resultado es catastral únicamente o si satisface el trámite
+   y acto requeridos para reflejarse también en registro.
+7. Conservar informe, datos crudos, cálculos, planos, actas, comunicaciones y
+   trazabilidad de área y linderos.
+
+La rectificación administrativa prevista en el artículo 105 de la Ley 1753 de
+2015 se vincula a barrido predial masivo y requiere, entre otras condiciones,
+acuerdo de titulares y colindantes en el supuesto legal, ausencia de afectación
+a terceros y verificación técnica. No generalizarla como vía para resolver
+conflictos limítrofes privados.
+
+5. CONTROL DE CALIDAD
+---------------------
+Comprobar unidades SI, consistencia de áreas, topología (autointersecciones,
+huecos, solapes), cierres, colindancia, norte y CRS; revisar concordancia entre
+croquis, descripción literal, vértices y plano. Reportar precisión y limitación
+de fuentes. En avalúos, hacer análisis de sensibilidad, trazabilidad de
+comparables y coherencia de variables. Referir siempre vigencia normativa y
+fecha de datos.
