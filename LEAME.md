@@ -1,12 +1,14 @@
 # Baúl de Ingeniería
 
 Aplicación web de apoyo técnico para Catastro Multipropósito y Geodesia en
-Colombia. La app usa Qwen3 8B mediante Ollama local, recupera extractos de
-los archivos locales y hace una segunda pasada de revisión.
+Colombia. Por defecto usa Qwen3 8B mediante Ollama local. También se puede
+configurar para consultar los dos agentes reales de OpenCode en un servidor
+remoto protegido.
 
-Los dos especialistas del proyecto son Catastro y Geodesia. No hay un agente
-mediador ni un tercer agente cloud. La app debe ejecutarse en un equipo que
-tenga acceso al servicio local de Ollama.
+Los únicos especialistas del proyecto son `agente_catastro` y
+`agente_geodesia`. El modo local requiere Ollama en el equipo donde corre
+Streamlit. En el modo OpenCode remoto, Ollama y Qwen corren en el servidor
+OpenCode, y la persona usuaria solo necesita un navegador.
 
 ## Qué necesitas
 
@@ -53,10 +55,26 @@ nombre de modelo. Por defecto son `http://localhost:11434` y `qwen3:8b`.
 ## Uso desde otra red
 
 Streamlit Community Cloud no puede conectarse al `localhost` de tu computador.
-Para usar la app desde otro equipo, ambos deben tener acceso a un endpoint de
-Ollama en una red privada confiable. No expongas Ollama directamente a internet
-sin autenticación y controles de acceso. La configuración predeterminada es
-local y no requiere credenciales externas.
+Para el modo compartido, despliega OpenCode, Ollama y `qwen3:8b` en un servidor,
+y configura la app Streamlit para conectarse al API OpenCode mediante HTTPS y
+autenticación. No expongas Ollama u OpenCode directamente a Internet. El proxy
+o gateway debe limitar el acceso y validar la credencial. Usa secretos de
+Streamlit o variables de entorno del servidor, nunca el repositorio.
+
+Configura estas variables en el servidor de Streamlit:
+
+- `OPENCODE_BASE_URL`: URL base HTTPS protegida del API OpenCode.
+- `OPENCODE_API_TOKEN`: credencial privada del gateway o contraseña de OpenCode.
+- `OPENCODE_WORKSPACE`: ruta absoluta del proyecto en el servidor OpenCode.
+- `OPENCODE_AUTH_SCHEME`: `bearer` para un gateway que valida Bearer (predeterminado)
+  o `basic` para autenticación básica nativa de OpenCode.
+- `OPENCODE_USERNAME`: usuario de autenticación básica, predeterminado `opencode`.
+
+El servidor OpenCode debe tener la configuración `opencode.json`, los agentes,
+sus contextos y acceso a Ollama con `qwen3:8b`. La app crea una sesión por
+consulta y la elimina al terminar. La API de sesiones documentada por OpenCode
+incluye rutas experimentales, por lo que se debe validar la versión del
+servidor durante el despliegue.
 
 ## Especialistas y respuestas
 
@@ -80,23 +98,23 @@ en una actuación profesional.
 ## Privacidad y almacenamiento
 
 La pregunta, el historial reciente y los extractos seleccionados se procesan en
-Ollama en el computador o endpoint que configures. Por defecto no salen del
-equipo. La app no escribe automáticamente las conversaciones ni notas en la
-memoria. No incluyas información personal, expedientes, credenciales o datos
-prediales sensibles.
+Ollama local por defecto. Con OpenCode remoto se envían al servidor configurado.
+La app no escribe automáticamente las conversaciones ni notas en la memoria.
+No incluyas información personal, expedientes, credenciales o datos prediales
+sensibles.
 
 ## Configuración de agentes OpenCode
 
-OpenCode conserva el modelo local `ollama/qwen3:8b` para sus dos agentes. La
-app Streamlit utiliza el mismo modelo local. Ejecuta:
+OpenCode conserva el modelo `ollama/qwen3:8b` para sus dos agentes. Para generar
+la configuración:
 
 ```powershell
 ollama pull qwen3:8b
 python parser_interpreta.py
 ```
 
-OpenCode y la app web tienen interfaces distintas, pero comparten Ollama/Qwen y
-los perfiles especializados definidos para Catastro y Geodesia.
+La app puede usar el API HTTP de OpenCode con esos agentes en modo remoto, o
+seguir usando Ollama directamente en modo local.
 
 ## Referencias oficiales
 

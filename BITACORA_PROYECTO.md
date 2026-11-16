@@ -40,23 +40,30 @@ Pregunta de presentación sugerida para la aplicación:
 
 ### 3.1. Modelo e inferencia
 
-- La interfaz Streamlit usa Ollama en `http://localhost:11434/api/chat`.
-- El modelo predeterminado es `qwen3:8b`.
+- Modo predeterminado: Streamlit usa Ollama en
+  `http://localhost:11434/api/chat`, con `qwen3:8b`.
+- Modo remoto opcional: Streamlit usa el API HTTP de OpenCode cuando se define
+  `OPENCODE_BASE_URL`. OpenCode ejecuta los agentes reales y su configuración
+  asigna `ollama/qwen3:8b`.
 - OpenCode usa el endpoint compatible `http://localhost:11434/v1` y el mismo
   modelo `ollama/qwen3:8b`.
 - `OLLAMA_BASE_URL` permite cambiar el host base. Por defecto:
   `http://localhost:11434`.
 - `OLLAMA_MODEL` permite cambiar el identificador del modelo. Por defecto:
   `qwen3:8b`.
-- Las solicitudes de la app a Ollama son locales por defecto. No necesitan
-  `OPENAI_API_KEY`, `OPENAI_MODEL`, `st.secrets` ni facturación de OpenAI API.
+- En el modo local predeterminado no se necesitan `OPENAI_API_KEY`,
+  `OPENAI_MODEL` ni facturación de OpenAI API. Los secretos de Streamlit solo
+  se requieren para conectar con OpenCode remoto.
 - En la solicitud de chat se establece `stream: false`, `think: false`,
   `temperature: 0.3`, `num_ctx: 8192`, `num_predict: 1400` y `keep_alive: 10m`.
 - La app concede hasta 600 segundos por solicitud para contemplar el arranque
   en frío del modelo y equipos con inferencia lenta.
-- Cada consulta ejecuta una generación inicial y una segunda pasada de revisión
-  usando Qwen. La revisión es una segunda respuesta del mismo modelo, no una
-  comprobación independiente.
+- En modo local cada consulta ejecuta una generación inicial y una segunda
+  pasada de revisión usando Qwen. La revisión es una segunda respuesta del
+  mismo modelo, no una comprobación independiente.
+- En modo OpenCode se crea una sesión temporal por cada agente solicitado; se
+  envían pregunta, historial y evidencia, se espera la respuesta y se elimina
+  la sesión. No se hace una llamada Ollama adicional desde Streamlit.
 
 ### 3.2. Agentes y perfiles
 
@@ -77,9 +84,10 @@ En Streamlit, el radio ofrece tres opciones de uso:
 - Agente Catastro: usa el perfil y la evidencia catastral.
 - Agente Geodesia: usa el perfil y la evidencia geodésica.
 
-La opción automática es una función de enrutamiento, no un tercer agente. La
-interfaz web aplica perfiles de sistema y comparte el mismo modelo local; no
-lanza sesiones OpenCode como subprocesos.
+La opción automática es una función de enrutamiento, no un tercer agente. En
+modo local, la interfaz aplica perfiles desde el código. En modo remoto,
+consulta sesiones OpenCode de los agentes nombrados. Las preguntas mixtas
+consultan a ambos agentes y muestran sus respuestas separadas.
 
 ### 3.3. Evidencia y contexto
 
@@ -102,10 +110,11 @@ lanza sesiones OpenCode como subprocesos.
 - El historial reciente se conserva en el estado temporal de la sesión
   Streamlit y se usa como contexto de la conversación.
 - Con el endpoint local predeterminado, pregunta, historial y evidencia se
-  procesan en Ollama en el equipo del usuario.
-- Si se cambia `OLLAMA_BASE_URL` a un servidor remoto, el contenido se envía a
-  ese servidor. Antes de hacerlo se deben revisar ubicación, controles de
-  acceso, autenticación y reglas de privacidad.
+  procesan en Ollama en el equipo donde corre Streamlit.
+- En modo OpenCode, pregunta, historial reciente y evidencia recuperada se
+  envían al endpoint remoto configurado. La app no envía el archivo de memoria.
+- La integración remota exige HTTPS y autenticación. El administrador debe
+  proteger también OpenCode y la conexión desde OpenCode hacia Ollama.
 - No incluir contraseñas, claves, datos personales, expedientes reservados ni
   identificadores prediales sensibles.
 
@@ -121,10 +130,11 @@ lanza sesiones OpenCode como subprocesos.
 - La página principal presenta el nombre del proyecto, las dos áreas y el modo
   seleccionado.
 
-### 4.2. Estado local
+### 4.2. Estado del servicio
 
-La barra lateral consulta el endpoint de etiquetas de Ollama
-`/api/tags` cada 15 segundos y muestra:
+En modo local, la barra lateral consulta Ollama `/api/tags` cada 15 segundos.
+En modo OpenCode consulta `/api/agent` y verifica la disponibilidad de los dos
+agentes. Muestra:
 
 - Qwen local listo, si Ollama responde y el modelo configurado aparece instalado.
 - Modelo no descargado, si Ollama está activo pero falta el modelo.
@@ -266,15 +276,19 @@ porque se leen al importar el módulo.
 
 ## 8. Despliegue y conectividad
 
-La configuración predeterminada es local. Un despliegue en Streamlit Community
-Cloud no puede usar `http://localhost:11434` para llegar al computador del
-propietario. Para ejecutar en un servidor remoto habría que configurar un
-endpoint Ollama remoto accesible desde ese servidor.
+La configuración predeterminada es local. Streamlit Community Cloud no puede
+usar `localhost` para llegar al computador del propietario. Se añadió el cliente
+HTTP de OpenCode para el modo servidor: OpenCode y Ollama/Qwen deben ejecutarse
+en un servidor accesible que tenga los dos agentes y el workspace del proyecto.
+Streamlit recibe `OPENCODE_BASE_URL`, `OPENCODE_API_TOKEN` y
+`OPENCODE_WORKSPACE` como secretos o variables server-side. `OPENCODE_AUTH_SCHEME`
+selecciona Bearer para un gateway o Basic para autenticación nativa de OpenCode.
 
-No se debe publicar Ollama directamente en internet sin controles de red,
-autenticación y autorización. La configuración remota debe proteger los datos
-en tránsito, limitar el origen de las solicitudes y considerar las políticas
-de privacidad del servicio que aloja el modelo.
+El cliente exige HTTPS y token para OpenCode remoto. Esto no sustituye controles
+de red y acceso: no se debe publicar OpenCode ni Ollama directamente sin
+autenticación, autorización y restricción de origen. La API consultada marca la
+ruta de espera de sesiones como experimental, por lo que debe probarse con la
+versión concreta de OpenCode.
 
 ## 9. Historial de implementación
 
@@ -317,6 +331,20 @@ de privacidad del servicio que aloja el modelo.
 - El enrutamiento automático continúa detectando el tema; también se puede
   seleccionar Catastro o Geodesia manualmente.
 
+### Fase D. Integración con OpenCode remoto
+
+- Añadidas opciones server-side para URL, credencial y directorio de workspace.
+- Se admite Bearer para un gateway/proxy y Basic para autenticación nativa de
+  OpenCode.
+- Se exige HTTPS para servidores remotos y se requiere una credencial.
+- La app crea una sesión temporal con el agente configurado, envía instrucciones,
+  historial y evidencia local, espera la respuesta y solicita borrar la sesión.
+- Las preguntas que cruzan ambas áreas consultan los dos agentes. No se añadió
+  un mediador.
+- Sin `OPENCODE_BASE_URL`, se conserva el modo local anterior.
+- Aún no se ha probado una instancia real: faltan URL, credencial, workspace y
+  servidor OpenCode provisionado.
+
 ## 10. Verificaciones ejecutadas
 
 - Compilación sintáctica de `app_baul.py` y `parser_interpreta.py`.
@@ -330,6 +358,13 @@ de privacidad del servicio que aloja el modelo.
 - Flujo simulado de dos llamadas a Ollama: generación y revisión.
 - Prueba del botón de pregunta sobre el proyecto: selección, enrutamiento y
   ejecución de dos llamadas simuladas.
+- Pruebas HTTP simuladas del flujo OpenCode: crear sesión, enviar prompt,
+  esperar, extraer la respuesta y borrar la sesión.
+- Verificación simulada del mapeo de ambos IDs (`agente_catastro` y
+  `agente_geodesia`), autenticación Bearer/Basic y rechazo de HTTP remoto.
+- Prueba Streamlit simulada del botón sugerido con backend OpenCode remoto.
+- Pendiente: prueba extremo a extremo contra un servidor OpenCode real y
+  protegido. No se dispone aún de URL, token ni workspace remoto.
 - Consulta real local corta a `qwen3:8b`, respuesta no vacía.
 - Verificación del estado Ollama y disponibilidad del modelo.
 - `git diff --check`.
@@ -355,11 +390,13 @@ de privacidad del servicio que aloja el modelo.
   semántica ni consulta web.
 - La aplicación no verifica en internet si una norma cambió desde la última
   actualización de las fichas.
-- La revisión de respuesta la hace el mismo modelo, no un segundo agente
-  independiente.
+- En modo local, la revisión de respuesta la hace el mismo modelo, no un
+  segundo agente independiente.
 - No se ha validado la app en otros equipos, navegadores o sistemas operativos.
-- La app no está desplegada públicamente; el diseño actual prioriza ejecución
-  local con Ollama.
+- La app no está desplegada públicamente. El modo remoto requiere configuración
+  y validación de una instancia OpenCode real.
+- El API HTTP de sesiones incluye rutas experimentales que pueden cambiar entre
+  versiones de OpenCode.
 - La presencia del modelo instalado no garantiza precisión profesional ni
   salida jurídica/geodésica correcta.
 
@@ -370,4 +407,5 @@ de privacidad del servicio que aloja el modelo.
 - `2cbdfee` — migración de la app y los dos especialistas a Qwen3 local.
 
 Esta actualización incorpora las preguntas sugeridas, descripción “Quiénes
-somos”, ejecución de preguntas desde los botones y ampliación de esta bitácora.
+somos”, ejecución de preguntas desde los botones, el cliente OpenCode remoto y
+la documentación de configuración server-side.
