@@ -1,0 +1,114 @@
+BAÚL DE INGENIERÍA | MAGNA-SIRGAS, GRS80 Y ORIGEN NACIONAL
+Investigación sintetizada: 15 de noviembre de 2026
+
+Fuentes oficiales:
+- Resolución IGAC 068 de 2005 y Resolución 715 de 2018, listadas en:
+  https://redgeodesica.igac.gov.co/documentacion/recursos/01_normatividad.html
+- Resolución IGAC 370 de 2021:
+  https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-370-de-2021
+- Portal Origen Nacional, parámetros y conversión:
+  https://origen.igac.gov.co/
+- Red Geodésica Nacional, documentación:
+  https://redgeodesica.igac.gov.co/documentacion/recursos/01_normatividad.html
+- Resolución IGAC 0515 de 2026, listado oficial de normativa geodésica,
+  adopta el modelo geoidal QGeoidCOL2023:
+  https://redgeodesica.igac.gov.co/documentacion/recursos/01_normatividad.html
+- EPSG registry, CRS 9377:
+  https://epsg.org/crs_9377/MAGNA-SIRGAS-2018-CTM12.html
+
+1. SISTEMA, MARCO Y DATUM
+-------------------------
+MAGNA-SIRGAS (Marco Geocéntrico Nacional de Referencia, densificación
+colombiana del Sistema de Referencia Geocéntrico para las Américas) es el
+marco geodésico oficial de Colombia. Fue adoptado mediante Resolución IGAC 068
+de 2005 y su realización/época se actualizó, entre otros actos, mediante
+Resolución 715 de 2018. Está materializado por estaciones pasivas y continuas
+GNSS con coordenadas y velocidades. Para trabajo de precisión, especificar la
+realización del marco, época de coordenadas y época de observación. No tratar
+un marco dinámico como si las coordenadas fueran invariantes en el tiempo.
+
+La conversión entre una coordenada GNSS y un datum/proyección requiere
+identificar marco, realización, época, sistema de ejes, unidades y operación de
+transformación. MAGNA-SIRGAS no significa automáticamente que todos los
+archivos estén ya en Origen Nacional: datum/marco y proyección son atributos
+distintos.
+
+2. ELIPSOIDE GRS80 Y RELACIÓN CON WGS84
+---------------------------------------
+El elipsoide GRS80 tiene:
+- semieje mayor a = 6 378 137 m;
+- achatamiento inverso 1/f = 298.257222101.
+
+WGS84 tiene mismo semieje mayor y achatamiento inverso aproximado
+298.257223563. Las diferencias geométricas entre esos elipsoides son muy
+pequeñas, pero WGS84 y MAGNA-SIRGAS son realizaciones/marcos de referencia, no
+solo nombres de elipsoides. No asignar equivalencia absoluta a coordenadas
+centimétricas: comprobar época, realización, datos y transformación requerida.
+El código EPSG de MAGNA-SIRGAS geográfico usado en definiciones publicadas por
+IGAC puede depender de la realización adoptada.
+
+3. ORIGEN NACIONAL / CTM12
+--------------------------
+La Resolución IGAC 370 de 2021 establece una única proyección oficial de
+coordenadas planas para Colombia: MAGNA-SIRGAS / Origen-Nacional, Transverse
+Mercator, EPSG:9377. La definición suele identificarse también como CTM12 en
+software/operación técnica. Se emplea para reducir discontinuidad de múltiples
+orígenes y facilitar integración de cartografía nacional.
+
+Parámetros oficiales:
+- Proyección: Transversa de Mercator (secante).
+- Elipsoide: GRS80.
+- Latitud del origen: 4° N.
+- Meridiano central: 73° W (longitud -73°).
+- Factor de escala en origen: 0.9992.
+- Falso Este: 5 000 000 m.
+- Falso Norte: 2 000 000 m.
+- Unidades: metros.
+- CRS: EPSG:9377.
+
+Orden de ejes para coordenadas proyectadas debe revisarse en el software y
+formato. En intercambio GIS suele etiquetarse Este (E), Norte (N), pero algunas
+interfaces presentan Norte/Este. No reinterpretar el orden sin inspeccionar
+WKT/metadata.
+
+La proyección Transversa de Mercator es conforme localmente y distorsiona
+distancias/áreas según ubicación. Las coordenadas planas no son distancias
+geodésicas sin factor de escala. Para replanteo o mediciones de ingeniería,
+aplicar correcciones de reducción/escala pertinentes. La Resolución 370 rige
+para su alcance oficial, sin impedir otras proyecciones en cálculos técnicos
+si se documenta transformación al sistema de intercambio oficial.
+
+4. ALTURAS Y GEOIDE
+-------------------
+Altura elipsoidal h se refiere al elipsoide. Altura ortométrica H se refiere a
+una superficie equipotencial asociada al nivel medio del mar/geoide. Ondulación
+geoidal N es la separación entre geoide y elipsoide. Relación aproximada:
+
+    h = H + N     o     H = h - N
+
+El signo y el campo disponible dependen de modelo, convención y software.
+No aplicar una ondulación sin confirmar su definición. Registrar modelo,
+versión, CRS vertical, punto de control, época y unidades.
+
+En 2026 el catálogo normativo de la Red Geodésica IGAC lista la Resolución
+0515 de 2026 que adopta QGeoidCOL2023 asociado a MAGNA-SIRGAS. El software
+MAGNA-SIRGAS PRO 7 ofrece interpolación según modelo y operación. IGAC también
+documenta grillas GEOCOL2004 y QGeoidCOL2023 en funcionalidades vigentes. No
+mezclar modelos ni citar GEOCOL2004 como único modelo actual sin verificar el
+producto y especificación contractual.
+
+5. CONTROL DE CRS Y TRANSFORMACIONES
+------------------------------------
+Antes de transformar:
+1. Inspeccionar metadatos/WKT/archivo PRJ, unidades, orden de ejes y datum.
+2. Determinar realización y época de origen/destino si el trabajo lo requiere.
+3. Seleccionar operación de transformación oficial adecuada y rejillas/modelos.
+4. Transformar coordenadas, no solo cambiar la etiqueta de CRS.
+5. Verificar puntos de control independientes, errores y área de uso.
+6. Documentar origen, destino, método, software/versión y precisión.
+
+El portal del IGAC Origen Nacional ofrece herramientas de conversión y
+referencias oficiales. Para transformaciones de alta precisión y épocas usar
+MAGNA-SIRGAS PRO en versión vigente y parámetros/modelos del IGAC. EPSG:9377
+describe un CRS proyectado; un código EPSG por sí solo no registra toda la
+historia de observación del punto ni su incertidumbre.

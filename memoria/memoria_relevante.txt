@@ -1,0 +1,17 @@
+BAÚL DE INGENIERÍA | MEMORIA RELEVANTE
+Registro histórico
+==================
+
+Propósito: conservar hechos, preferencias y decisiones del proyecto que sean
+útiles en conversaciones futuras. No guardar credenciales, datos sensibles,
+suposiciones sin verificar ni transcripciones completas.
+
+Formato de entrada recomendado
+------------------------------
+[AAAA-MM-DD] Tema: hecho o decisión confirmada. Fuente/contexto: ...
+
+Registro inicial
+----------------
+[2026-11-15] Proyecto inicializado como Baúl de Ingeniería. Contextos locales
+separados para Catastro Multipropósito y Geodesia; antes de guardar una nota,
+verificar que sea relevante, estable y no confidencial.

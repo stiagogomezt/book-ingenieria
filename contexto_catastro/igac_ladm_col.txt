@@ -1,0 +1,179 @@
+BAÚL DE INGENIERÍA | GESTIÓN CATASTRAL Y LADM-COL
+Investigación sintetizada: 15 de noviembre de 2026
+
+ALCANCE Y VIGENCIA
+------------------
+Este documento es una guía técnica de orientación, no concepto jurídico. La
+Resolución IGAC 1040 de 2023 es la resolución única de gestión catastral
+multipropósito, pero no debe leerse en su versión original como si siguiera
+inalterada. El normograma del IGAC identifica modificaciones parciales por las
+Resoluciones 746 de 2024 y 794 de 2026. Consultar el texto consolidado y anexos
+vigentes, el acto aplicable al gestor y la fecha del trámite antes de decidir.
+
+Fuentes oficiales:
+- Resolución 1040 de 2023, IGAC:
+  https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-1040-de-2023
+- Resolución 746 de 2024, IGAC:
+  https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-746-de-2024
+- Resolución 794 de 2026, IGAC:
+  https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-794-de-2026
+- Decreto 148 de 2020, Gestor Normativo de Función Pública:
+  https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=105952
+- Portal de modelos LADM-COL, IGAC:
+  https://www.igac.gov.co/catastro-multiproposito/ladmcol
+
+1. MARCO DE GESTIÓN CATASTRAL
+-----------------------------
+La gestión catastral es un servicio público que comprende operaciones técnicas
+y administrativas para formar, actualizar, conservar y difundir la información
+catastral. El enfoque multipropósito procura que la información física,
+jurídica y económica sea útil para ordenamiento territorial, políticas
+públicas, gestión fiscal, mercado inmobiliario e interoperabilidad. El gestor
+catastral competente administra los procesos dentro de su ámbito; el IGAC
+ejerce funciones de autoridad reguladora nacional y presta el servicio en los
+casos previstos por la ley.
+
+La inscripción catastral no constituye título de dominio, no sanea defectos de
+propiedad o tradición y no resuelve por sí sola controversias de dominio,
+posesión, ocupación o derechos reales. Catastro y registro inmobiliario son
+sistemas relacionados e interoperables, pero con objetivos y efectos jurídicos
+distintos.
+
+2. RESOLUCIÓN 1040 DE 2023 Y MODIFICACIONES
+-------------------------------------------
+La Resolución 1040 compila reglas de la operación catastral, habilitación de
+gestores, procesos, procedimientos, especificaciones de producto y aspectos
+técnicos. Entre otros, estructura la gestión en formación, actualización,
+conservación y difusión, incorpora atención y participación de usuarios y
+establece lineamientos para calidad e intercambio de la información. Sus
+disposiciones de los títulos de procesos y especificaciones comenzaron a regir
+en la fecha indicada por el acto, con reglas transitorias.
+
+La Resolución 746 de 2024 modifica parcialmente la 1040 y sus anexos. La
+Resolución 794 de 2026 vuelve a modificar varios artículos de la 1040, entre
+otros sobre responsabilidades, actos de procesos, conservación, registro,
+avalúos y procedimientos. La norma de 2026 aparece vigente en el normograma
+consultado. Los ejemplos de este archivo no reemplazan la revisión artículo
+por artículo de dichas modificaciones, anexos y actos posteriores.
+
+3. MODELO LADM-COL
+------------------
+LADM (Land Administration Domain Model) es el estándar internacional ISO
+19152 para modelar información de administración de tierras. LADM-COL es el
+perfil/adaptación colombiana, con un modelo núcleo, modelos extendidos
+temáticos y modelos de aplicación para usos concretos. El modelo extendido
+Catastro-Registro representa como objeto central el predio/unidad
+administrativa básica y normaliza clases, atributos, relaciones y fuentes para
+facilitar consistencia e interoperabilidad geográfica y alfanumérica.
+
+El IGAC informa que la Resolución Conjunta IGAC 662 y SNR 05346 de 2024 adopta
+el modelo extendido desde el núcleo, y que la versión 4.1 fue aprobada y
+adoptada mediante Resolución Conjunta IGAC 1456 y SNR 09844 de septiembre de
+2024. Las entidades deben verificar la versión vigente y la transición
+aplicable. Los modelos de aplicación derivan del modelo extendido y responden
+a necesidades como levantamiento, transferencia o reporte SINIC. No se debe
+confundir un modelo de aplicación con el modelo conceptual extendido.
+
+Según el portal IGAC consultado, para reporte al SINIC la Resolución 301 de
+2025 fijó transición al modelo LADM-COL SINIC V1.0, con aplicación desde el
+1 de marzo de 2026 y submodelo de cartografía catastral V1.1. Confirmar la
+versión, plazos, perfiles y validadores publicados al momento del intercambio.
+
+4. FORMACIÓN, ACTUALIZACIÓN Y CONSERVACIÓN
+------------------------------------------
+Formación: identificación e incorporación inicial de información física,
+jurídica y económica del territorio objetivo.
+
+Actualización: actividades para identificar, recoger, incorporar o rectificar
+cambios e inconsistencias de esos componentes durante un periodo y territorio
+determinados. Puede usar métodos directos, indirectos, declarativos,
+colaborativos o combinaciones permitidas por la regulación, con controles de
+calidad, participación, trazabilidad y cobertura territorial. La actualización
+no debe reducirse a una operación geométrica: comprende predio, construcciones,
+relaciones jurídicas reportables y componente económico conforme al modelo y
+especificaciones vigentes.
+
+Conservación: mantenimiento permanente de la base catastral, de oficio o por
+solicitud, incorporando cambios posteriores a formación/actualización. Incluye
+trámites, mutaciones, rectificaciones, ajustes y procedimientos con efectos
+registrales cuando se cumplen sus requisitos. Las actuaciones deben conservar
+soportes, fechas de inscripción, vigencias, notificaciones, consistencia y
+trazabilidad.
+
+Los actos administrativos de inicio, aprobación de valores y cierre/clausura,
+así como sus excepciones y reglas temporales, se revisan en el texto vigente
+de la Resolución 1040, en especial tras las modificaciones de 746/2024 y
+794/2026. No generalizar una fecha de vigencia fiscal a todos los municipios.
+
+5. MUTACIONES Y CAMBIOS DE CONFIGURACIÓN
+----------------------------------------
+La Resolución 1040 contempla mutaciones por cambios físicos, jurídicos y
+económicos. La clasificación tradicional debe cotejarse con el texto
+consolidado:
+
+- Primera clase: cambio de propietario, poseedor u ocupante que no afecta el
+  avalúo catastral, según los supuestos reglados.
+- Segunda clase: cambio en linderos por agregación o segregación, con o sin
+  cambio de titularidad; puede incluir englobes/desenglobes, subdivisiones y
+  casos sujetos a propiedad horizontal conforme a la norma.
+- Tercera clase: cambios físicos en el predio o construcciones y cambios de
+  destino económico definidos por la norma aplicable.
+- Cuarta clase: revisión/autoestimación u otros cambios del componente
+  valuatorio según la regulación consolidada. No asumir que el alcance es
+  idéntico a la clasificación histórica.
+- Quinta clase: incorporación de predios omitidos y demás eventos previstos
+  por la regulación que no quedan en las clases anteriores. Verificar texto
+  vigente y hecho concreto.
+
+Englobe: agregación catastral de predios, usualmente colindantes y con soportes
+jurídicos y técnicos pertinentes, en una unidad resultante. Desenglobe:
+segregación de un predio en unidades resultantes. Revisar títulos, folios,
+licencias/actos cuando sean exigibles, continuidad de áreas, colindancias,
+geometría, identificadores y reglas de propiedad horizontal. La actuación
+catastral no sustituye el acto urbanístico, el instrumento público ni la
+inscripción registral que legalmente corresponda.
+
+6. PROCEDIMIENTOS DE LINDEROS Y ÁREAS
+-------------------------------------
+El Decreto 148 de 2020 modificó el Decreto 1170 de 2015 e incorporó
+procedimientos catastrales con efectos registrales. La Resolución Conjunta
+IGAC 1101 de 2020 y SNR 11344 de 2020 desarrolla lineamientos y se consulta
+junto con modificaciones y actos posteriores.
+
+Los procedimientos no son intercambiables:
+- Actualización de linderos: descripción técnica cuando los linderos son
+  verificables y se mantienen sin variación, o la diferencia está dentro de
+  tolerancia aplicable, según el procedimiento legal.
+- Rectificación de área por imprecisa determinación: linderos debida y
+  técnicamente descritos/verificables, pero área histórica no determinada
+  adecuadamente, o diferencia dentro de tolerancia en los supuestos normativos.
+- Rectificación de linderos por acuerdo: requiere acuerdo y soportes exigibles,
+  incluyendo acta de colindancia en el supuesto correspondiente; protege
+  terceros y bienes públicos o de especial protección.
+- Actualización/rectificación masiva: aplica en los supuestos y condiciones
+  específicos para intervención masiva.
+- Rectificación catastral ordinaria: puede corregir la inscripción para fines
+  catastrales; no presumir que genera efecto registral.
+
+Antes de recomendar trámite: identificar autoridad competente, naturaleza del
+error, calidad y disponibilidad de títulos/folio, acuerdo de colindantes,
+levantamiento y método de medición, tolerancia aplicable, terceros, bienes
+públicos, potencial conflicto de derechos y efectos catastrales frente a
+registrales. Si hay controversia de derechos o desacuerdo, no resolverla como
+si fuera solo un ajuste geométrico.
+
+Fuentes técnicas/jurídicas adicionales:
+- Resolución Conjunta IGAC 1101 / SNR 11344 de 2020, ubicada en el normograma
+  IGAC y procedimientos de efectos registrales.
+- Decreto 148 de 2020, artículos incorporados al Decreto 1170 de 2015.
+- Ley 1753 de 2015, artículo 105, rectificación administrativa en barrido
+  masivo bajo condiciones de acuerdo y protección de terceros:
+  https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=61933
+
+7. CONTROL TÉCNICO
+------------------
+Documentar fuentes y fecha de corte, sistema de referencia, área geométrica,
+área catastral y registral, método, precisión, tratamiento de límites, clase
+de mutación/procedimiento, soportes y efectos pretendidos. No equiparar
+posesión, ocupación y propiedad. No afirmar un resultado legal sin revisar
+expediente, competencia, norma vigente y decisión del gestor.

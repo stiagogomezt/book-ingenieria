@@ -1,0 +1,65 @@
+BAÚL DE INGENIERÍA | ÍNDICE TÉCNICO DE GEODESIA
+Versión inicial: 2026-11-15
+
+1. Elipsoides GRS80 y WGS84
+---------------------------
+GRS80: semieje mayor a = 6 378 137 m; achatamiento inverso
+1/f = 298.257222101. WGS84: a = 6 378 137 m; 1/f =
+298.257223563 (realización dependiente del marco/época). Sus dimensiones son
+muy próximas, pero no debe asumirse que sus realizaciones, marcos y coordenadas
+son idénticos. Las diferencias de coordenadas también dependen de la realización
+del marco terrestre y la época.
+
+2. MAGNA-SIRGAS
+---------------
+MAGNA-SIRGAS es el marco geocéntrico oficial de referencia para Colombia,
+materializado mediante estaciones y realizaciones vinculadas a SIRGAS. Las
+coordenadas deben acompañarse de realización, época de referencia y tipo de
+coordenada cuando sea relevante. Una coordenada geográfica sin datum/marco,
+época y unidades es incompleta. Verificar la realización oficial vigente del
+IGAC para el producto y la fecha de observación.
+
+3. Proyección Origen-Nacional
+-----------------------------
+La proyección cartográfica Origen-Nacional para Colombia se asocia con
+MAGNA-SIRGAS / Origen-Nacional, EPSG:9377. Es una proyección Transversa de
+Mercator (Transverse Mercator) de uso nacional, con falso Este de 5 000 000 m,
+falso Norte de 2 000 000 m, factor de escala 0.9992 y origen de longitud
+-73° (latitud de origen 4°). Confirmar parámetros y definición EPSG/IGAC para
+el uso específico, especialmente al transformar información histórica.
+
+Las coordenadas proyectadas se expresan en metros. No confundir el sistema
+Origen-Nacional con zonas UTM ni mezclar Este/Norte con longitud/latitud.
+Indicar siempre código EPSG o WKT, ejes, unidades y operación de transformación.
+
+4. Ondulación geoidal y alturas
+------------------------------
+La altura elipsoidal h es medida respecto al elipsoide; la altura ortométrica H
+se refiere al geoide/nivel medio del mar. En la aproximación habitual:
+H = h - N, donde N es la ondulación geoidal (separación geoide-elipsoide).
+El signo depende de la convención usada por el modelo y el software. No
+confundir alturas elipsoidales GNSS con alturas físicas. Indicar modelo geoidal,
+versión, datum vertical y unidades. Para trabajos en Colombia, verificar los
+modelos y especificaciones publicados por el IGAC.
+
+5. Posicionamiento GNSS
+-----------------------
+GNSS comprende constelaciones como GPS, GLONASS, Galileo y BeiDou. El
+posicionamiento autónomo, diferencial, estático, estático rápido, RTK y PPK
+tienen precisiones y requisitos distintos. Para resultados reproducibles
+registrar receptor/antena, altura y método de medición, constelaciones,
+frecuencia, duración, intervalo, máscara de elevación, estaciones base,
+órbitas, modelo atmosférico, procesamiento, marco y época.
+
+La calidad depende de geometría satelital, multitrayectoria, obstrucciones,
+ionosfera/troposfera, longitud de línea base, calibración de antena y
+procedimiento. Reportar incertidumbre y controles independientes. Transformar
+coordenadas solo con una operación válida para el marco, la época y el área.
+
+6. Buenas prácticas
+--------------------
+Antes de calcular, confirmar CRS de origen/destino, unidades, ejes, época y
+definición del datum. No asignar un CRS como sustituto de transformar. Mantener
+los datos originales y registrar software, versión, rejilla/operación de
+transformación, parámetros y precisión. Consultar fuentes oficiales del IGAC,
+EPSG y SIRGAS para definiciones vigentes.
