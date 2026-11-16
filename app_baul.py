@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 from typing import Any
+import re
+import unicodedata
 
 import requests
 import streamlit as st
@@ -19,7 +21,9 @@ CONTEXT_FILES = {
 OLLAMA_CHAT_URL = "http://localhost:11434/api/chat"
 OLLAMA_MODEL = "qwen2.5:7b"
 MAX_CONTEXT_CHARS = 50_000
-MAX_MEMORY_CHARS = 12_000
+MAX_MEMORY_CHARS = 5_000
+MAX_EVIDENCE_ITEMS = 6
+MAX_EVIDENCE_CHARS = 10_000
 
 
 def read_file(path: Path, limit: int = MAX_CONTEXT_CHARS) -> str:
@@ -32,76 +36,213 @@ def read_file(path: Path, limit: int = MAX_CONTEXT_CHARS) -> str:
     return text
 
 
-def read_context(topic: str, limit: int = MAX_CONTEXT_CHARS) -> str:
-    files = CONTEXT_FILES.get(topic, [])
-    if not files:
-        return f"No hay archivos .txt en contexto_{topic.lower()}."
-    blocks = []
-    for path in files:
-        blocks.append(f"### {path.name}\n{read_file(path)}")
-    return "\n\n".join(blocks)[:limit]
+def normalize_text(text: str) -> str:
+    normalized = unicodedata.normalize("NFKD", text.casefold())
+    return "".join(char for char in normalized if not unicodedata.combining(char))
 
 
-def build_system_prompt(workflow: str, user_query: str) -> str:
-    memory = read_file(MEMORY_FILE, MAX_MEMORY_CHARS)
-    common = (
-        "Eres Baúl de Ingeniería, un asistente técnico en español. "
-        "Distingue datos confirmados de inferencias. No inventes citas, "
-        "requisitos ni precisión. Para normativa, advierte que se debe "
-        "verificar la versión vigente y el gestor competente. No guardes "
-        "secretos ni datos personales en memoria.\n\n"
-        f"MEMORIA RELEVANTE:\n{memory}\n"
-    )
+def detect_topics(workflow: str, user_query: str) -> list[str]:
+    """Route a question to the applicable local knowledge folders."""
     if workflow == "Consultar solo Catastro":
-        return (
-            common
-            + "\nTrabaja exclusivamente con el contexto de Catastro provisto "
-            "para esta respuesta. No uses contexto de Geodesia.\n\n"
-            + f"CONTEXTO CATASTRAL:\n{read_context('Catastro')}"
-        )
+        return ["Catastro"]
     if workflow == "Consultar solo Geodesia":
-        return (
-            common
-            + "\nTrabaja exclusivamente con el contexto de Geodesia provisto "
-            "para esta respuesta. No uses contexto de Catastro.\n\n"
-            + f"CONTEXTO GEODÉSICO:\n{read_context('Geodesia')}"
-        )
-    query_lower = user_query.casefold()
+        return ["Geodesia"]
+
+    query = normalize_text(user_query)
     cadastral_terms = (
-        "catastro", "predio", "avalúo", "avaluo", "mutación", "mutacion",
-        "englobe", "desenglobe", "lindero", "cabida", "ladm", "igac",
+        "catastro", "predio", "avaluo", "mutacion", "englobe", "desenglobe",
+        "lindero", "cabida", "ladm", "igac", "matricula inmobiliaria",
     )
     geodetic_terms = (
-        "geodes", "gnss", "gps", "rtk", "ntrip", "wgs84", "grs80",
-        "magna", "sirgas", "origen nacional", "ctm12", "geoide", "altura",
-        "coordenada", "proyección", "proyeccion",
+        "geodes", "gnss", "gps", "rtk", "ntrip", "wgs84", "grs80", "magna",
+        "sirgas", "origen nacional", "ctm12", "geoide", "altura", "coordenada",
+        "proyeccion", "elipsoide",
     )
-    needs_cadastre = any(term in query_lower for term in cadastral_terms)
-    needs_geodesy = any(term in query_lower for term in geodetic_terms)
+    needs_cadastre = any(term in query for term in cadastral_terms)
+    needs_geodesy = any(term in query for term in geodetic_terms)
     if needs_cadastre and not needs_geodesy:
-        return (
-            common
-            + "\nClasifica la consulta como Catastro y usa exclusivamente el "
-            "contexto catastral provisto.\n\n"
-            + f"CONTEXTO CATASTRAL:\n{read_context('Catastro')}"
-        )
+        return ["Catastro"]
     if needs_geodesy and not needs_cadastre:
+        return ["Geodesia"]
+    return ["Catastro", "Geodesia"]
+
+
+def split_into_passages(text: str) -> list[str]:
+    """Split a text file into evidence-sized paragraphs."""
+    paragraphs = [
+        re.sub(r"\s+", " ", paragraph).strip()
+        for paragraph in re.split(r"\n\s*\n", text)
+        if paragraph.strip()
+    ]
+    passages: list[str] = []
+    pending = ""
+    for paragraph in paragraphs:
+        if len(paragraph) > 2200:
+            if pending:
+                passages.append(pending)
+                pending = ""
+            sentences = re.split(r"(?<=[.!?])\s+", paragraph)
+            current = ""
+            for sentence in sentences:
+                if len(current) + len(sentence) > 1500 and current:
+                    passages.append(current)
+                    current = sentence
+                else:
+                    current = f"{current} {sentence}".strip()
+            if current:
+                passages.append(current)
+        elif len(pending) + len(paragraph) < 1500:
+            pending = f"{pending}\n{paragraph}".strip()
+        else:
+            if pending:
+                passages.append(pending)
+            pending = paragraph
+    if pending:
+        passages.append(pending)
+    return passages
+
+
+def retrieve_evidence(
+    workflow: str, user_query: str
+) -> tuple[list[str], list[dict[str, Any]]]:
+    """Rank local text passages and return cited, bounded evidence."""
+    topics = detect_topics(workflow, user_query)
+    query_tokens = {
+        token
+        for token in re.findall(r"[a-z0-9]+", normalize_text(user_query))
+        if len(token) > 2
+    }
+    stopwords = {
+        "que", "como", "para", "por", "con", "del", "una", "uno", "las",
+        "los", "sobre", "entre", "desde", "cuando", "cual", "cuales",
+        "hay", "puede", "debo", "quiero", "explica", "dime", "este",
+        "esta", "esto", "the", "and", "for", "what", "how",
+    }
+    query_tokens -= stopwords
+    if not query_tokens:
+        return topics, []
+
+    ranked: list[dict[str, Any]] = []
+    for topic in topics:
+        for path in CONTEXT_FILES.get(topic, []):
+            if not path.is_file():
+                continue
+            for passage in split_into_passages(read_file(path)):
+                passage_tokens = set(
+                    re.findall(r"[a-z0-9]+", normalize_text(passage))
+                )
+                overlap = query_tokens & passage_tokens
+                if not overlap:
+                    continue
+                score = len(overlap) + sum(
+                    0.35 for token in overlap if len(token) >= 7
+                )
+                ranked.append(
+                    {
+                        "topic": topic,
+                        "file": path.name,
+                        "passage": passage,
+                        "score": score,
+                    }
+                )
+
+    ranked.sort(key=lambda item: item["score"], reverse=True)
+    if len(topics) == 2:
+        # Keep evidence balanced when the question genuinely spans both fields.
+        selected = []
+        for topic in topics:
+            selected.extend(
+                item for item in ranked if item["topic"] == topic
+            )
+        selected = sorted(selected, key=lambda item: item["score"], reverse=True)
+    else:
+        selected = ranked
+
+    evidence: list[dict[str, Any]] = []
+    used_by_topic = {topic: 0 for topic in topics}
+    total_chars = 0
+    for item in selected:
+        if len(evidence) >= MAX_EVIDENCE_ITEMS:
+            break
+        if used_by_topic[item["topic"]] >= (
+            MAX_EVIDENCE_ITEMS // len(topics)
+            if len(topics) > 1
+            else MAX_EVIDENCE_ITEMS
+        ):
+            continue
+        passage = item["passage"][:1800]
+        if total_chars + len(passage) > MAX_EVIDENCE_CHARS:
+            continue
+        evidence.append(
+            {
+                **item,
+                "id": f"E{len(evidence) + 1}",
+                "passage": passage,
+            }
+        )
+        used_by_topic[item["topic"]] += 1
+        total_chars += len(passage)
+
+    return topics, evidence
+
+
+def build_system_prompt(
+    workflow: str,
+    topics: list[str],
+    evidence_items: list[dict[str, Any]],
+    depth: str,
+) -> str:
+    memory = read_file(MEMORY_FILE, MAX_MEMORY_CHARS)
+    depth_guidance = {
+        "Ejecutiva": (
+            "Responde en forma breve: conclusión, uno o dos fundamentos y "
+            "una cautela importante si aplica."
+        ),
+        "Detallada": (
+            "Explica la conclusión, fundamentos, pasos prácticos, unidades o "
+            "supuestos pertinentes y limitaciones."
+        ),
+        "Experta": (
+            "Entrega análisis técnico riguroso: conclusión ejecutiva, "
+            "fundamentos paso a paso, procedimiento reproducible o ecuaciones "
+            "cuando aporten valor, supuestos, riesgos/limitaciones y "
+            "recomendación práctica. No alargues con contenido irrelevante."
+        ),
+    }[depth]
+    topic_text = ", ".join(topics)
+    evidence_text = "\n\n".join(
+        f"[{item['id']}] Tema: {item['topic']} | Archivo: {item['file']}\n"
+        f"{item['passage']}"
+        for item in evidence_items
+    )
+    common = (
+        "Eres el asistente técnico principal del Baúl de Ingeniería. Responde "
+        "en español claro y profesional. Distingue hechos de inferencias. "
+        "No inventes artículos, requisitos, cifras, CRS, tolerancias ni "
+        "precisiones. Para normas, revisa la fecha/versión citada en evidencia "
+        "y advierte si el usuario debe confirmar el texto consolidado vigente "
+        "y el gestor competente. No reveles razonamiento privado paso a paso; "
+        "sí muestra cálculos, criterios y verificaciones reproducibles.\n\n"
+        f"Profundidad solicitada: {depth}. {depth_guidance}\n"
+        f"Temas asignados automáticamente: {topic_text}.\n\n"
+        "Usa la memoria solo para preferencias y antecedentes, no como autoridad "
+        "normativa. Apoya afirmaciones técnicas en los extractos de evidencia "
+        "cuando existan. Cita el identificador exacto como [E1]. No inventes "
+        "identificadores. Si no hay evidencia suficiente, dilo expresamente y "
+        "separa orientación general de hechos respaldados.\n\n"
+        "Estructura sugerida, omite secciones que no aporten: respuesta; "
+        "análisis técnico; pasos/cálculos; supuestos y límites; fuentes usadas.\n\n"
+        f"MEMORIA RELEVANTE:\n{memory}\n\n"
+        f"EVIDENCIA LOCAL:\n{evidence_text or '[No se recuperaron pasajes relevantes. No presentes la memoria como fuente técnica.]'}"
+    )
+    if workflow == "Automático con Hombre en el medio":
         return (
             common
-            + "\nClasifica la consulta como Geodesia y usa exclusivamente el "
-            "contexto geodésico provisto.\n\n"
-            + f"CONTEXTO GEODÉSICO:\n{read_context('Geodesia')}"
+            + "\nFlujo automático: usa únicamente las áreas técnicas asignadas y "
+            "los extractos recuperados. Esta interfaz coordina con recuperación "
+            "local y revisión de calidad; no lanza subagentes OpenCode separados."
         )
-    return (
-        common
-        + "\nFlujo automático con Hombre en el medio: identifica si la consulta "
-        "es de Catastro, Geodesia o ambas; aplica solo el contexto pertinente, "
-        "integra la respuesta y declara incertidumbres. Esta interfaz llama "
-        "directamente a un único modelo Ollama, no ejecuta subagentes OpenCode "
-        "separados.\n\n"
-        + f"CONTEXTO CATASTRAL:\n{read_context('Catastro', 10_000)}\n\n"
-        + f"CONTEXTO GEODÉSICO:\n{read_context('Geodesia', 10_000)}"
-    )
+    return common
 
 
 def ollama_chat(messages: list[dict[str, str]], timeout: int = 180) -> str:
@@ -123,6 +264,42 @@ def ollama_chat(messages: list[dict[str, str]], timeout: int = 180) -> str:
     if not isinstance(content, str) or not content.strip():
         raise ValueError("Ollama devolvió una respuesta vacía o inesperada.")
     return content.strip()
+
+
+def review_answer(
+    question: str,
+    draft: str,
+    evidence_items: list[dict[str, Any]],
+    depth: str,
+) -> str:
+    """Run a separate local verification and editorial pass."""
+    evidence_text = "\n\n".join(
+        f"[{item['id']}] Tema: {item['topic']} | Archivo: {item['file']}\n"
+        f"{item['passage']}"
+        for item in evidence_items
+    )
+    system = (
+        "Actúas como revisor técnico independiente de Baúl de Ingeniería. "
+        "Entrega la respuesta final directamente, no una lista de cambios ni "
+        "un informe sobre el borrador. Revisa coherencia, unidades, fórmulas, "
+        "CRS/época, vigencia normativa, supuestos y afirmaciones no respaldadas. "
+        "No agregues hechos nuevos que no estén en el borrador o la evidencia. "
+        "Conserva citas [E#] solo cuando el extracto indicado realmente respalde "
+        "la afirmación. Elimina o califica lo no sustentado. Si la evidencia es "
+        "insuficiente, dilo con claridad y propone qué dato/fuente falta. "
+        "No reveles razonamiento privado ni menciones esta revisión interna. "
+        f"Profundidad final: {depth}. Usa español profesional y Markdown legible."
+    )
+    user = (
+        f"CONSULTA:\n{question}\n\n"
+        f"EVIDENCIA DISPONIBLE:\n"
+        f"{evidence_text or '[Sin extractos recuperados del contexto local.]'}\n\n"
+        f"BORRADOR A REVISAR:\n{draft}"
+    )
+    return ollama_chat(
+        [{"role": "system", "content": system}, {"role": "user", "content": user}],
+        timeout=180,
+    )
 
 
 def extract_memory_note(question: str, answer: str) -> str:
@@ -166,6 +343,14 @@ def render_chat(messages: list[dict[str, str]]) -> None:
     for message in messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            evidence = message.get("evidence", [])
+            if message["role"] == "assistant" and evidence:
+                with st.expander(f"Ver evidencia local ({len(evidence)} extractos)"):
+                    for item in evidence:
+                        st.markdown(
+                            f"**[{item['id']}] {item['topic']} · "
+                            f"`{item['file']}`**\n\n{item['passage']}"
+                        )
 
 
 def render_styles() -> None:
@@ -400,6 +585,12 @@ def main() -> None:
             label_visibility="collapsed",
             key="workflow",
         )
+        depth = st.select_slider(
+            "Profundidad de respuesta",
+            options=["Ejecutiva", "Detallada", "Experta"],
+            value="Experta",
+            help="La respuesta experta incluye análisis, supuestos, pasos y cautelas.",
+        )
         server_online, model_ready = ollama_status()
         status_class = "status-online" if server_online else "status-offline"
         status_title = "Ollama conectado" if server_online else "Ollama desconectado"
@@ -426,6 +617,17 @@ def main() -> None:
         st.markdown('<div class="section-label">Tu espacio</div>', unsafe_allow_html=True)
         st.caption(f"📚  {sum(map(len, CONTEXT_FILES.values()))} archivos técnicos")
         st.caption("🧠  Memoria local activa")
+        st.caption("🔎  Recuperación de evidencia + revisión técnica")
+        with st.expander("Últimas notas de memoria"):
+            memory_lines = [
+                line
+                for line in read_file(MEMORY_FILE, MAX_MEMORY_CHARS).splitlines()
+                if line.startswith("[")
+            ]
+            if memory_lines:
+                st.markdown("\n".join(f"- {line}" for line in memory_lines[-4:]))
+            else:
+                st.caption("Aún no hay notas guardadas.")
         if st.button("Limpiar conversación"):
             if "conversations" in st.session_state:
                 st.session_state.conversations[workflow] = []
@@ -446,36 +648,86 @@ def main() -> None:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    system_prompt = build_system_prompt(workflow, prompt)
+    retrieval_query = " ".join(
+        [
+            item["content"]
+            for item in messages[-5:-1]
+            if item["role"] == "user"
+        ]
+        + [prompt]
+    )
+    topics, evidence = retrieve_evidence(workflow, retrieval_query)
+    system_prompt = build_system_prompt(workflow, topics, evidence, depth)
     recent_messages = [
         {"role": item["role"], "content": item["content"][-1600:]}
-        for item in messages[-6:]
+        for item in messages[-4:]
     ]
     request_messages = [{"role": "system", "content": system_prompt}, *recent_messages]
     with st.chat_message("assistant"):
-        with st.spinner("Consultando Ollama..."):
+        with st.status("Preparando respuesta técnica...", expanded=False) as pipeline:
             try:
-                answer = ollama_chat(request_messages)
-                st.markdown(answer)
+                pipeline.update(
+                    label=f"Buscando evidencia de {', '.join(topics)}...",
+                    state="running",
+                )
+                draft = ollama_chat(request_messages)
+                pipeline.update(
+                    label="Revisando rigor técnico, cifras y citas...",
+                    state="running",
+                )
+                try:
+                    answer = review_answer(prompt, draft, evidence, depth)
+                except requests.RequestException:
+                    answer = (
+                        draft
+                        + "\n\n> No se pudo completar la segunda pasada de "
+                        "revisión. Trata esta respuesta como borrador y verifica "
+                        "sus datos en las fuentes oficiales."
+                    )
+                pipeline.update(
+                    label="Respuesta revisada",
+                    state="complete",
+                    expanded=False,
+                )
             except requests.ConnectionError:
                 answer = (
                     "No pude conectar con Ollama. Confirma que Ollama esté "
                     "ejecutándose en `localhost:11434` y que el modelo "
                     "`qwen2.5:7b` esté descargado."
                 )
+                pipeline.update(label="Ollama no está disponible", state="error")
                 st.error(answer)
             except requests.Timeout:
                 answer = "La solicitud a Ollama excedió el tiempo de espera."
+                pipeline.update(label="La solicitud excedió el tiempo", state="error")
                 st.error(answer)
             except requests.RequestException as exc:
                 answer = f"Error de la API de Ollama: {exc}"
+                pipeline.update(label="Error de comunicación con Ollama", state="error")
                 st.error(answer)
             except (ValueError, KeyError) as exc:
                 answer = f"No se pudo interpretar la respuesta de Ollama: {exc}"
+                pipeline.update(label="Respuesta de Ollama no válida", state="error")
                 st.error(answer)
+        if not answer.startswith(
+            ("No pude conectar", "La solicitud a Ollama", "Error de la API", "No se pudo interpretar")
+        ):
+            st.markdown(answer)
+            if evidence:
+                with st.expander(f"Ver evidencia utilizada ({len(evidence)} extractos)"):
+                    for item in evidence:
+                        st.markdown(
+                            f"**[{item['id']}] {item['topic']} · "
+                            f"`{item['file']}`**\n\n{item['passage']}"
+                        )
 
-    messages.append({"role": "assistant", "content": answer})
-    if answer.startswith(("No pude conectar", "La solicitud a Ollama", "Error de la API")):
+    message_data: dict[str, Any] = {"role": "assistant", "content": answer}
+    if evidence:
+        message_data["evidence"] = evidence
+    messages.append(message_data)
+    if answer.startswith(
+        ("No pude conectar", "La solicitud a Ollama", "Error de la API", "No se pudo interpretar")
+    ):
         return
 
     try:

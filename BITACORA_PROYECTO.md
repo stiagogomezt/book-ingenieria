@@ -83,10 +83,12 @@ si la sesión continúa seleccionada en Ollama.
 
 `app_baul.py` implementa una UI con selección de flujo, historial de chat y
 mensajes Streamlit. Realiza solicitudes HTTP mediante `requests` al endpoint
-local `http://localhost:11434/api/chat` con `qwen2.5:7b`. Inserta el archivo de
-memoria y los contextos de Catastro/Geodesia según el modo seleccionado.
-Después de responder, realiza una segunda llamada para proponer una nota breve
-no sensible y la agrega fechada a la memoria si el modelo devuelve una nota.
+local `http://localhost:11434/api/chat` con `qwen2.5:7b`. Clasifica consultas,
+recupera hasta seis pasajes pertinentes con búsqueda léxica local, incluye
+memoria y presenta identificadores `[E#]` junto con el archivo de origen.
+Realiza una primera llamada de redacción y una segunda de revisión técnica y
+editorial. Después puede realizar una tercera llamada para proponer una nota
+breve no sensible para la memoria.
 
 La presentación incluye una identidad visual propia, estado de conexión/modelo
 en la barra lateral, pantalla de bienvenida con ejemplos, chat estilizado y
@@ -94,10 +96,11 @@ comportamiento adaptable a pantallas pequeñas. Los estilos y tipografías usan
 recursos locales para mantener la interfaz sin dependencias visuales externas.
 
 El flujo automático de la aplicación es una clasificación/inyección de contexto
-en una llamada a Ollama. No invoca los subagentes de OpenCode ni el modelo cloud.
-La extracción de memoria no verifica la verdad de una conclusión, por lo que el
-archivo debe revisarse periódicamente. `requirements.txt` declara Streamlit y
-Requests; `LEAME.md` incluye instalación, ejecución y solución de problemas.
+mediante búsqueda local, con dos pasadas del mismo modelo Ollama. No invoca los
+subagentes de OpenCode ni el modelo cloud. La revisión no es una verificación
+independiente y la extracción de memoria no garantiza verdad; el archivo debe
+revisarse periódicamente. `requirements.txt` declara Streamlit y Requests;
+`LEAME.md` incluye instalación, ejecución y solución de problemas.
 
 ## Fases
 

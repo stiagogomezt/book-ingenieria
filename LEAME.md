@@ -61,8 +61,9 @@ sin depender de imágenes o fuentes remotas.
 
 ## Flujos disponibles
 
-- Automático con Hombre en el medio: inyecta memoria y ambos contextos. El
-  modelo clasifica y prioriza el contexto según la consulta.
+- Automático con Hombre en el medio: usa memoria, detecta el tema y recupera
+  extractos pertinentes del contexto catastral, geodésico o de ambos. Después
+  redacta y realiza una segunda pasada de revisión.
 - Consultar solo Catastro: inyecta memoria y los archivos
   `contexto_catastro/*.txt`.
 - Consultar solo Geodesia: inyecta memoria y los archivos
@@ -71,6 +72,13 @@ sin depender de imágenes o fuentes remotas.
 La interfaz Streamlit llama directamente a un único modelo Ollama. Su flujo
 automático está dirigido por instrucciones y no lanza subagentes OpenCode
 separados. El agente cloud de `opencode.json` tampoco se usa desde esta UI.
+
+El selector de profundidad permite respuestas ejecutivas, detalladas o
+expertas. La respuesta experta puede incluir análisis técnico, pasos, cálculos,
+supuestos, cautelas y citas `[E#]` a extractos recuperados. Abre “Ver evidencia
+utilizada” para inspeccionar los textos locales que se incluyeron. El segundo
+paso es una revisión del mismo modelo local, no una verificación independiente
+ni una garantía de exactitud.
 
 Al terminar una respuesta, la aplicación solicita al modelo una conclusión
 breve que sea estable y no sensible. Si existe, la añade con fecha a la memoria.
