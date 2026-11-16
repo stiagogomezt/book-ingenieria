@@ -1,0 +1,115 @@
+BAÚL DE INGENIERÍA | REFERENCIAS OFICIALES DE CATASTRO
+Consultadas: 2026-11-15
+Jurisdicción principal: Colombia
+
+CRITERIO
+Las fichas enlazan fuentes oficiales; no reemplazan el acto publicado ni el
+análisis de vigencia, jurisdicción y competencia. Evitar aplicar un requisito
+sin revisar la norma vigente y los procedimientos del gestor catastral.
+
+1. NORMATIVA ÚNICA DE GESTIÓN CATASTRAL
+Resolución IGAC 1040 de 2023, Resolución Única de la Gestión Catastral
+Multipropósito. El registro del IGAC indica que fue modificada parcialmente
+por las resoluciones 746 de 2024 y 794 de 2026. Consultar el acto y sus anexos:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-1040-de-2023
+
+Resolución IGAC 746 de 2024, modificatoria parcial de la Resolución 1040.
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-746-de-2024
+
+Resolución IGAC 794 de 2026, modificación parcial de la Resolución 1040.
+Estado publicado por IGAC: vigente. Incluye anexos de glosario, documentación
+mínima para entrega, prefijos CH y consistencia lógica:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-794-de-2026
+
+Normograma IGAC, consultar actualizaciones y estado de cada acto:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normativa/normograma
+
+2. SISTEMA NACIONAL DE INFORMACIÓN CATASTRAL (SINIC)
+Resolución IGAC 301 de 2025. Adopta el SINIC, establece condiciones de reporte
+y deroga la Resolución 315 de 2022. La transición al modelo SINIC V1.0 concluyó
+el 28 de febrero de 2026; consultar condiciones vigentes, anexos y avisos
+posteriores del IGAC antes de estructurar una entrega:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-301-de-2025
+
+Portal IGAC de Reporte de Información Catastral. Publica el modelo de
+aplicación LADM_COL SINIC V1.0, instructivo, homologación, reglas de calidad,
+prevalidador y documentación de servicios:
+https://www.igac.gov.co/catastro-multiproposito/reporte-de-informacion-catastral
+
+Página institucional LADM_COL. Modelos núcleo, extendidos y de aplicación:
+https://www.igac.gov.co/catastro-multiproposito/ladmcol
+
+3. LADM_COL Y ARTICULACIÓN CATASTRO-REGISTRO
+Resolución Conjunta IGAC 1101 - SNR 11344 de 2020, procedimientos catastrales
+con efectos registrales, corrección/inclusión de cabida en ordenamiento social
+de la propiedad y escrituras aclaratorias:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-conjunta-igac-1101-snr-11344-de-2020
+
+Resolución Conjunta IGAC 662 - SNR 05346 de 2024, modelo extendido
+Catastro-Registro LADM_COL:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-662-de-2024
+
+Resolución Conjunta IGAC 1456 - SNR 09844 de 2024, adopta la versión 4.1 del
+Modelo Extendido Catastro-Registro LADM_COL:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-conjunta-1456-de-2024
+
+Repositorio oficial ICDE de modelos LADM_COL:
+https://www.icde.gov.co/datos-y-recursos/modelos-ladm
+
+4. MARCO LEGAL GENERAL
+Decreto 1170 de 2015, texto integrado publicado por Función Pública. La página
+advierte que su consolidación puede no incorporar cambios posteriores a la
+fecha indicada allí; cotejar leyes y decretos más recientes:
+https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=62870
+
+Decreto 148 de 2020, regulación de gestión catastral multipropósito y
+modificación del Decreto 1170:
+https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=105952
+
+Ley 1955 de 2019, artículos sobre gestión catastral, modificados, entre otras,
+por la Ley 2294 de 2023. Consultar texto integrado oficial:
+https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=93970
+
+5. AVALÚOS COMERCIALES
+Resolución IGAC 941 de 2026, métodos y condiciones de elaboración y
+presentación de avalúos comerciales conforme al Decreto 1170 de 2015. Estado
+publicado: vigente. Deroga expresamente la Resolución 620 de 2008 y los
+incisos 1, 2 y 3 del artículo 14 de la Resolución 898 de 2014:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-941-de-2026
+
+Resolución 620 de 2008, referencia histórica solamente. IGAC la registra como
+derogada por la Resolución 941 de 2026. No citar como norma vigente:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-620-de-2008
+
+Resolución 1137 de 2024, reglas específicas para avalúos de referencia y
+compra de tierras en los casos descritos en el acto. Revisar ámbito de
+aplicación y modificaciones antes de usar:
+https://www.igac.gov.co/sites/default/files/transparencia/normograma/RESOLUCION%201137%20DE%202024.pdf
+
+Procedimiento IGAC PC-VAL-03 V3, Avalúos Comerciales, vigencia indicada
+21-08-2025. Es procedimiento interno del IGAC, no una norma general para todos
+los gestores. Confirmar si existe una versión posterior:
+https://www.igac.gov.co/sites/default/files/listadomaestro/PC-VAL-03%20V3%20Avaluos%20Comerciales.pdf
+
+6. PREDIOS, LINDEROS Y EFECTOS REGISTRALES
+Procedimiento IGAC PC-GCT-02, trámites catastrales con efectos registrales,
+versión publicada en 2023. Confirmar que no exista procedimiento posterior:
+https://www.igac.gov.co/sites/default/files/listadomaestro/pc-gct-02_tramites_catastrales_con_efectos_registrales_de_caracter_puntual.pdf
+
+Guía/cartilla IGAC 2025 de procedimientos catastrales con efectos registrales.
+Material orientador, no sustituye normas ni actos administrativos:
+https://www.igac.gov.co/sites/default/files/2025-09/CARTILLA-IGAC%202025-VERSION-FINAL-7-8-25-c-1.pdf
+
+NOTAS PARA EL AGENTE CATASTRO
+- El catastro no constituye título de dominio ni sanea tradición.
+- Distinguir avalúo catastral de avalúo comercial, y de la base del impuesto
+  predial según el municipio.
+- En respuestas sobre trámites, solicitar municipio, gestor, fecha de
+  radicación, tipo de predio, soporte registral y propósito del avalúo cuando
+  sean determinantes.
+- No usar un procedimiento interno IGAC como si obligara automáticamente a
+  todos los gestores. Consultar el gestor competente y sus procedimientos.
+- Verificar si la pregunta es sobre actualización de lindero, rectificación
+  de área por imprecisa determinación, rectificación por acuerdo u otra figura.
+- En avalúos comerciales, aplicar Resolución 941 de 2026, no la derogada
+  Resolución 620 de 2008, salvo que una regla transitoria determine lo contrario.

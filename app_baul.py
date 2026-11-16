@@ -1,29 +1,53 @@
-"""Streamlit chat interface for the Baúl de Ingeniería local Ollama model."""
+"""Streamlit application for the Baúl de Ingeniería cloud assistant."""
 
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 from typing import Any
 import re
 import unicodedata
+import os
 
 import requests
 import streamlit as st
 
 
 ROOT = Path(__file__).resolve().parent
-MEMORY_FILE = ROOT / "memoria" / "memoria_relevante.txt"
 CONTEXT_FILES = {
-    "Catastro": sorted((ROOT / "contexto_catastro").glob("*.txt")),
-    "Geodesia": sorted((ROOT / "contexto_geodesia").glob("*.txt")),
+    "Catastro": sorted((ROOT / "contexto_catastro").glob("*.txt"))
+    + sorted((ROOT / "insumos").glob("catastro_*.txt")),
+    "Geodesia": sorted((ROOT / "contexto_geodesia").glob("*.txt"))
+    + sorted((ROOT / "insumos").glob("geodesia_*.txt")),
 }
-OLLAMA_CHAT_URL = "http://localhost:11434/api/chat"
-OLLAMA_MODEL = "qwen2.5:7b"
+OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
+OPENAI_MODEL_DEFAULT = "gpt-5.4-mini"
 MAX_CONTEXT_CHARS = 50_000
-MAX_MEMORY_CHARS = 5_000
 MAX_EVIDENCE_ITEMS = 6
 MAX_EVIDENCE_CHARS = 10_000
+
+
+AGENT_PROFILES = {
+    "Catastro": (
+        "Eres el Agente de Catastro Multipropósito de Baúl de Ingeniería. "
+        "Tu dominio exclusivo es gestión catastral colombiana: formación, "
+        "actualización, conservación, difusión, avalúo catastral, LADM_COL, "
+        "SINIC, mutaciones y procedimientos catastrales con efectos registrales. "
+        "Separa catastro, registro y título de propiedad. Identifica el gestor "
+        "competente y la fecha de radicación cuando cambien el procedimiento. "
+        "No inventes requisitos jurídicos ni confundas avalúo catastral y "
+        "comercial. Cita evidencia como [E1] y enlaza sus fuentes oficiales."
+    ),
+    "Geodesia": (
+        "Eres el Agente de Geodesia y GNSS de Baúl de Ingeniería. Tu dominio "
+        "exclusivo es referencia geodésica colombiana, MAGNA-SIRGAS, épocas, "
+        "Origen-Nacional, transformaciones, alturas, modelos geoidales, redes "
+        "GNSS y procesamiento de observaciones. Declara CRS/EPSG, unidades, "
+        "marco y época cuando sean pertinentes. No asignes un CRS como si fuera "
+        "una transformación. Distingue altura elipsoidal h, ondulación N y "
+        "altura física H; identifica el modelo vigente. No prometas precisión "
+        "sin datos, método y control. Cita evidencia como [E1] y enlaza fuentes."
+    ),
+}
 
 
 def read_file(path: Path, limit: int = MAX_CONTEXT_CHARS) -> str:
@@ -43,9 +67,9 @@ def normalize_text(text: str) -> str:
 
 def detect_topics(workflow: str, user_query: str) -> list[str]:
     """Route a question to the applicable local knowledge folders."""
-    if workflow == "Consultar solo Catastro":
+    if workflow == "Agente Catastro":
         return ["Catastro"]
-    if workflow == "Consultar solo Geodesia":
+    if workflow == "Agente Geodesia":
         return ["Geodesia"]
 
     query = normalize_text(user_query)
@@ -192,7 +216,6 @@ def build_system_prompt(
     evidence_items: list[dict[str, Any]],
     depth: str,
 ) -> str:
-    memory = read_file(MEMORY_FILE, MAX_MEMORY_CHARS)
     depth_guidance = {
         "Ejecutiva": (
             "Responde en forma breve: conclusión, uno o dos fundamentos y "
@@ -210,59 +233,84 @@ def build_system_prompt(
         ),
     }[depth]
     topic_text = ", ".join(topics)
+    profile = "\n\n".join(AGENT_PROFILES[topic] for topic in topics)
     evidence_text = "\n\n".join(
         f"[{item['id']}] Tema: {item['topic']} | Archivo: {item['file']}\n"
         f"{item['passage']}"
         for item in evidence_items
     )
     common = (
-        "Eres el asistente técnico principal del Baúl de Ingeniería. Responde "
-        "en español claro y profesional. Distingue hechos de inferencias. "
+        f"{profile}\n\n"
+        "Responde en español claro y profesional. Distingue hechos de inferencias. "
         "No inventes artículos, requisitos, cifras, CRS, tolerancias ni "
         "precisiones. Para normas, revisa la fecha/versión citada en evidencia "
         "y advierte si el usuario debe confirmar el texto consolidado vigente "
         "y el gestor competente. No reveles razonamiento privado paso a paso; "
         "sí muestra cálculos, criterios y verificaciones reproducibles.\n\n"
         f"Profundidad solicitada: {depth}. {depth_guidance}\n"
-        f"Temas asignados automáticamente: {topic_text}.\n\n"
-        "Usa la memoria solo para preferencias y antecedentes, no como autoridad "
-        "normativa. Apoya afirmaciones técnicas en los extractos de evidencia "
+        f"Especialista asignado: {topic_text}.\n\n"
+        "Apoya afirmaciones técnicas en los extractos de evidencia "
         "cuando existan. Cita el identificador exacto como [E1]. No inventes "
         "identificadores. Si no hay evidencia suficiente, dilo expresamente y "
         "separa orientación general de hechos respaldados.\n\n"
         "Estructura sugerida, omite secciones que no aporten: respuesta; "
-        "análisis técnico; pasos/cálculos; supuestos y límites; fuentes usadas.\n\n"
-        f"MEMORIA RELEVANTE:\n{memory}\n\n"
-        f"EVIDENCIA LOCAL:\n{evidence_text or '[No se recuperaron pasajes relevantes. No presentes la memoria como fuente técnica.]'}"
+        "análisis técnico; pasos/cálculos; supuestos y límites; fuentes usadas. "
+        "Al final incluye referencias enlazadas a los documentos oficiales "
+        "citados, si las fichas de evidencia contienen enlaces.\n\n"
+        f"EVIDENCIA LOCAL:\n{evidence_text or '[No se recuperaron pasajes relevantes. Separa orientación general de hechos verificados.]'}"
     )
-    if workflow == "Automático con Hombre en el medio":
-        return (
-            common
-            + "\nFlujo automático: usa únicamente las áreas técnicas asignadas y "
-            "los extractos recuperados. Esta interfaz coordina con recuperación "
-            "local y revisión de calidad; no lanza subagentes OpenCode separados."
-        )
     return common
 
 
-def ollama_chat(messages: list[dict[str, str]], timeout: int = 180) -> str:
+def get_api_key() -> str:
+    """Read the API credential from deployment secrets or the environment."""
+    try:
+        secret = st.secrets.get("OPENAI_API_KEY", "")
+    except (AttributeError, KeyError, FileNotFoundError):
+        secret = ""
+    return str(secret or os.environ.get("OPENAI_API_KEY", "")).strip()
+
+
+def get_model_name() -> str:
+    try:
+        secret = st.secrets.get("OPENAI_MODEL", "")
+    except (AttributeError, KeyError, FileNotFoundError):
+        secret = ""
+    return str(
+        secret or os.environ.get("OPENAI_MODEL", OPENAI_MODEL_DEFAULT)
+    ).strip()
+
+
+def cloud_status() -> tuple[bool, str]:
+    """Return whether the cloud model is configured and which model is selected."""
+    return bool(get_api_key()), get_model_name()
+
+
+def cloud_chat(messages: list[dict[str, str]], timeout: int = 180) -> str:
+    """Call the OpenAI cloud API without exposing credentials to the browser."""
+    api_key = get_api_key()
+    if not api_key:
+        raise RuntimeError(
+            "Falta configurar OPENAI_API_KEY en Streamlit Secrets o en el entorno."
+        )
     payload: dict[str, Any] = {
-        "model": OLLAMA_MODEL,
+        "model": get_model_name(),
         "messages": messages,
-        "stream": False,
-        "options": {
-            "num_ctx": 8192,
-            "num_predict": 900,
-            "temperature": 0.3,
-        },
-        "keep_alive": "5m",
+        "max_completion_tokens": 3500,
+        "reasoning_effort": "medium",
     }
-    response = requests.post(OLLAMA_CHAT_URL, json=payload, timeout=timeout)
+    response = requests.post(
+        OPENAI_CHAT_URL,
+        json=payload,
+        headers={"Authorization": f"Bearer {api_key}"},
+        timeout=timeout,
+    )
     response.raise_for_status()
     data = response.json()
-    content = data.get("message", {}).get("content")
+    choices = data.get("choices", [])
+    content = choices[0].get("message", {}).get("content") if choices else None
     if not isinstance(content, str) or not content.strip():
-        raise ValueError("Ollama devolvió una respuesta vacía o inesperada.")
+        raise ValueError("El proveedor devolvió una respuesta vacía o inesperada.")
     return content.strip()
 
 
@@ -272,14 +320,14 @@ def review_answer(
     evidence_items: list[dict[str, Any]],
     depth: str,
 ) -> str:
-    """Run a separate local verification and editorial pass."""
+    """Run a second cloud-model pass against the same specialist evidence."""
     evidence_text = "\n\n".join(
         f"[{item['id']}] Tema: {item['topic']} | Archivo: {item['file']}\n"
         f"{item['passage']}"
         for item in evidence_items
     )
     system = (
-        "Actúas como revisor técnico independiente de Baúl de Ingeniería. "
+        "Actúas como revisor técnico del especialista asignado en Baúl de Ingeniería. "
         "Entrega la respuesta final directamente, no una lista de cambios ni "
         "un informe sobre el borrador. Revisa coherencia, unidades, fórmulas, "
         "CRS/época, vigencia normativa, supuestos y afirmaciones no respaldadas. "
@@ -288,6 +336,7 @@ def review_answer(
         "la afirmación. Elimina o califica lo no sustentado. Si la evidencia es "
         "insuficiente, dilo con claridad y propone qué dato/fuente falta. "
         "No reveles razonamiento privado ni menciones esta revisión interna. "
+        "Conserva las URL de las fuentes oficiales del borrador. "
         f"Profundidad final: {depth}. Usa español profesional y Markdown legible."
     )
     user = (
@@ -296,47 +345,10 @@ def review_answer(
         f"{evidence_text or '[Sin extractos recuperados del contexto local.]'}\n\n"
         f"BORRADOR A REVISAR:\n{draft}"
     )
-    return ollama_chat(
+    return cloud_chat(
         [{"role": "system", "content": system}, {"role": "user", "content": user}],
         timeout=180,
     )
-
-
-def extract_memory_note(question: str, answer: str) -> str:
-    """Ask the local model for one safe, durable memory note or no note."""
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "Extrae como máximo una nota breve, estable y reutilizable para "
-                "memoria de proyecto. No guardes datos personales, secretos, "
-                "tokens, claves, transcripciones ni hechos inciertos. Si no hay "
-                "una conclusión realmente útil, responde exactamente: NO_GUARDAR. "
-                "Si la hay, responde solo una línea factual, sin prefijo ni fecha."
-            ),
-        },
-        {
-            "role": "user",
-            "content": f"Consulta: {question[:3000]}\nRespuesta: {answer[:5000]}",
-        },
-    ]
-    note = ollama_chat(messages, timeout=90).strip()
-    if note == "NO_GUARDAR":
-        return ""
-    return " ".join(note.split())[:500]
-
-
-def save_memory_note(note: str) -> None:
-    if not note:
-        return
-    MEMORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if not MEMORY_FILE.exists():
-        MEMORY_FILE.write_text(
-            "BAÚL DE INGENIERÍA | MEMORIA RELEVANTE\nRegistro histórico\n",
-            encoding="utf-8",
-        )
-    with MEMORY_FILE.open("a", encoding="utf-8") as handle:
-        handle.write(f"\n[{date.today().isoformat()}] {note}\n")
 
 
 def render_chat(messages: list[dict[str, str]]) -> None:
@@ -358,60 +370,73 @@ def render_styles() -> None:
         """
         <style>
         :root {
-          --ink: #172b35;
-          --muted: #687a7e;
-          --paper: #f7f8f5;
-          --line: #e4eae5;
-          --teal: #0e766e;
-          --teal-soft: #e5f3ef;
-          --orange: #d88745;
+          --ink: #252a25;
+          --muted: #72766e;
+          --paper: #f3f0e7;
+          --line: #ded9cc;
+          --teal: #465c4c;
+          --teal-soft: #e7e9de;
+          --orange: #bd5538;
         }
         html, body, [class*="css"] {
           font-family: 'Segoe UI Variable', 'Aptos', 'Segoe UI', sans-serif;
           color: var(--ink);
         }
-        [data-testid="stAppViewContainer"] { background: var(--paper); }
+        [data-testid="stAppViewContainer"] {
+          background-color: var(--paper);
+          background-image: radial-gradient(#a9a38f48 .65px, transparent .65px);
+          background-size: 7px 7px;
+        }
         [data-testid="stHeader"] { background: transparent; }
         [data-testid="stMainBlockContainer"] {
-          max-width: 1120px;
-          padding-top: 2.2rem;
+          max-width: 1180px;
+          padding-top: 1.4rem;
           padding-bottom: 7rem;
         }
         [data-testid="stSidebar"] {
-          background: #f0f3ef;
+          background: #e9e6dc;
           border-right: 1px solid var(--line);
         }
         [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .75rem; }
         .baul-brand {
           display: flex; align-items: center; gap: 12px;
-          padding: 8px 4px 22px; border-bottom: 1px solid #dce5df;
+          padding: 8px 4px 22px; border-bottom: 1px solid #d2cbbb;
           margin-bottom: 8px;
         }
         .baul-mark {
           width: 42px; height: 42px; display: grid; place-items: center;
-          border-radius: 14px; background: var(--ink); color: #fff;
-          font-size: 21px; box-shadow: 0 6px 16px #172b3520;
+          border-radius: 2px; background: var(--ink); color: #f3f0e7;
+          font: 700 18px Georgia, serif; box-shadow: 4px 4px 0 #bd553833;
         }
-        .baul-brand-name { font: 800 15px 'Segoe UI Variable', 'Aptos', sans-serif; letter-spacing: -.3px; }
+        .baul-brand-name { font: 700 13px Georgia, 'Times New Roman', serif; letter-spacing: .5px; }
         .baul-brand-note { color: var(--muted); font-size: 11px; margin-top: 2px; }
         .hero {
-          padding: 10px 0 20px;
+          position: relative; overflow: hidden;
+          padding: 20px 24px 24px; margin: 4px 0 22px;
           display: flex; align-items: center; justify-content: space-between;
-          gap: 18px;
+          gap: 18px; background: #dedbce; border-top: 1px solid #c9c3b4;
+          border-bottom: 1px solid #c9c3b4;
+        }
+        .hero::after {
+          content: ''; position: absolute; right: 3%; top: -95px;
+          width: 390px; height: 300px; opacity: .25; pointer-events: none;
+          background: repeating-radial-gradient(ellipse at 55% 52%,
+            transparent 0 15px, #465c4c 16px 17px, transparent 18px 30px);
+          transform: rotate(-13deg);
         }
         .hero-kicker {
-          color: var(--teal); text-transform: uppercase; letter-spacing: 1.5px;
-          font-size: 11px; font-weight: 700; margin-bottom: 9px;
+          color: var(--orange); text-transform: uppercase; letter-spacing: 2px;
+          font-size: 10px; font-weight: 700; margin-bottom: 10px;
         }
         .hero-title {
-          font: 800 clamp(30px, 4vw, 43px)/1.12 'Segoe UI Variable', 'Aptos', sans-serif;
-          letter-spacing: -1.8px; color: var(--ink); margin: 0;
+          font: 700 clamp(34px, 4vw, 49px)/1.04 Georgia, 'Times New Roman', serif;
+          letter-spacing: -1.4px; color: var(--ink); margin: 0;
         }
-        .hero-copy { color: var(--muted); font-size: 15px; margin-top: 11px; }
+        .hero-copy { color: #555b51; font-size: 14px; margin-top: 11px; }
         .hero-badge {
-          white-space: nowrap; background: #fff; border: 1px solid var(--line);
-          border-radius: 999px; padding: 9px 13px; color: var(--teal);
-          font-size: 12px; font-weight: 700;
+          z-index: 1; white-space: nowrap; color: var(--ink);
+          border-left: 2px solid var(--orange); padding: 5px 0 5px 12px;
+          font: 12px Georgia, serif; letter-spacing: .3px;
         }
         .section-label {
           color: #82918c; font-size: 10px; letter-spacing: 1.4px;
@@ -429,46 +454,47 @@ def render_styles() -> None:
         .status-detail { color: var(--muted); font-size: 10px; margin-top: 2px; }
         .st-key-workflow div[role="radiogroup"] { gap: 7px; }
         .st-key-workflow label {
-          background: #fff; border: 1px solid #e1e8e3; border-radius: 12px;
+          background: #f7f5ef; border: 1px solid #d8d2c4; border-radius: 3px;
           padding: 10px 12px; transition: .15s ease;
         }
         .st-key-workflow label:hover { border-color: #91bdb2; }
         [data-testid="stChatMessage"] {
-          background: #fff; border: 1px solid var(--line);
-          border-radius: 18px; padding: 16px 18px; margin-bottom: 14px;
-          box-shadow: 0 4px 14px #19333308;
+          background: #faf9f4; border: 1px solid var(--line);
+          border-radius: 3px; padding: 16px 18px; margin-bottom: 14px;
+          box-shadow: 3px 3px 0 #252a2509;
         }
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
-          background: var(--teal-soft); border-color: #d0e8df;
+          background: #e8e8df; border-color: #d0cebf;
         }
         [data-testid="stChatMessage"] p { line-height: 1.7; }
         [data-testid="stChatInput"] {
-          border: 1px solid #d8e2dc; border-radius: 18px;
-          background: #fff; box-shadow: 0 8px 28px #1933330c;
+          border: 1px solid #cfc9bb; border-radius: 3px;
+          background: #faf9f4; box-shadow: 3px 3px 0 #252a2509;
         }
         [data-testid="stChatInput"]:focus-within {
-          border-color: #5caaa0; box-shadow: 0 0 0 3px #0e766e18;
+          border-color: var(--teal); box-shadow: 0 0 0 2px #465c4c20;
         }
         .welcome {
-          border: 1px solid #e0e8e1; background: #fff; border-radius: 22px;
-          padding: 24px 25px 20px; margin: 18px 0 20px;
-          box-shadow: 0 12px 30px #18393308;
+          border-left: 3px solid var(--orange); background: #faf9f4;
+          border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+          padding: 20px 22px; margin: 12px 0 18px;
         }
-        .welcome-title { font: 700 19px 'Segoe UI Variable', 'Aptos', sans-serif; margin-bottom: 5px; }
+        .welcome-title { font: 700 21px Georgia, 'Times New Roman', serif; margin-bottom: 5px; }
         .welcome-copy { color: var(--muted); font-size: 13px; line-height: 1.6; }
         .prompt-card {
-          height: 100%; min-height: 100px; background: #f9fbf8;
-          border: 1px solid #e5ece6; border-radius: 15px; padding: 14px;
+          height: 100%; min-height: 145px; background: #faf9f4;
+          border: 1px solid #d8d2c4; border-radius: 3px; padding: 17px;
+          box-shadow: 3px 3px 0 #252a2508;
         }
-        .prompt-icon { font-size: 18px; margin-bottom: 8px; }
-        .prompt-title { font-size: 12px; font-weight: 700; color: var(--ink); }
+        .prompt-icon { color: var(--orange); font: 11px Georgia, serif; letter-spacing: 1px; margin-bottom: 15px; }
+        .prompt-title { font: 700 18px Georgia, 'Times New Roman', serif; color: var(--ink); }
         .prompt-copy { color: var(--muted); font-size: 11px; line-height: 1.45; margin-top: 4px; }
         .footer-note { color: #87938d; font-size: 11px; text-align: center; padding-top: 7px; }
         div.stButton > button {
-          border-radius: 12px; border: 1px solid #dbe5de; color: #49605b;
-          background: #fff; font-weight: 600;
+          border-radius: 3px; border: 1px solid #d1cbbb; color: #39443b;
+          background: #faf9f4; font-weight: 600;
         }
-        div.stButton > button:hover { border-color: #8bb9ad; color: var(--teal); }
+        div.stButton > button:hover { border-color: var(--teal); color: var(--orange); }
         @media (max-width: 700px) {
           [data-testid="stMainBlockContainer"] { padding: 1.1rem 1rem 6rem; }
           .hero { align-items: flex-start; flex-direction: column; }
@@ -480,46 +506,25 @@ def render_styles() -> None:
     )
 
 
-@st.cache_data(ttl=15, show_spinner=False)
-def ollama_status() -> tuple[bool, bool]:
-    """Check local availability without blocking the interface for long."""
-    try:
-        response = requests.get("http://localhost:11434/api/tags", timeout=1.5)
-        response.raise_for_status()
-        model_names = [
-            item.get("name", "")
-            for item in response.json().get("models", [])
-            if isinstance(item, dict)
-        ]
-        model_ready = any(
-            name == OLLAMA_MODEL or name.startswith(f"{OLLAMA_MODEL}-")
-            for name in model_names
-        )
-        return True, model_ready
-    except (requests.RequestException, ValueError, TypeError):
-        return False, False
-
-
 def render_welcome(workflow: str) -> None:
     st.markdown(
         """
         <div class="welcome">
-          <div class="welcome-title">¿Qué vamos a resolver hoy?</div>
+          <div class="welcome-title">Un espacio de trabajo, dos especialidades.</div>
           <div class="welcome-copy">
-            Consulta normativa catastral, sistemas de referencia o métodos de
-            levantamiento. El Baúl incorpora sus notas técnicas locales en cada
-            respuesta.
+            Selecciona un especialista o deja que el enrutador identifique el
+            tema. Cada respuesta recupera documentos locales y prioriza las
+            fuentes oficiales.
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
     prompts = [
-        ("🏛️", "Catastro", "Resume los pasos técnicos de un desenglobe."),
-        ("🛰️", "Geodesia", "¿Qué parámetros tiene MAGNA-SIRGAS / Origen Nacional?"),
-        ("📐", "GNSS", "Compara RTK y estático para un levantamiento predial."),
+        ("01 / TERRITORIO", "Catastro", "Gestión multipropósito · LADM-COL · SINIC · linderos"),
+        ("02 / REFERENCIA", "Geodesia", "MAGNA-SIRGAS · GNSS · alturas · transformaciones"),
     ]
-    columns = st.columns(3)
+    columns = st.columns(2)
     for column, (icon, title, copy) in zip(columns, prompts):
         with column:
             st.markdown(
@@ -533,24 +538,24 @@ def render_welcome(workflow: str) -> None:
                 unsafe_allow_html=True,
             )
     st.markdown(
-        f'<div class="footer-note">Flujo activo: {workflow} · '
-        "Las respuestas son orientación técnica y deben contrastarse con fuentes oficiales.</div>",
+        f'<div class="footer-note">MODO {workflow.upper()} · '
+        "Orientación técnica documentada. Confirma vigencia normativa y alcance profesional.</div>",
         unsafe_allow_html=True,
     )
 
 
 def main() -> None:
-    st.set_page_config(page_title="Baúl de Ingeniería", page_icon="🧰", layout="wide")
+    st.set_page_config(page_title="Baúl | Ingeniería territorial", page_icon="🧭", layout="wide")
     render_styles()
     st.markdown(
         """
         <div class="hero">
           <div>
-            <div class="hero-kicker">Copiloto técnico · Colombia</div>
+            <div class="hero-kicker">CUADERNO DE CAMPO / COLOMBIA</div>
             <h1 class="hero-title">Baúl de Ingeniería</h1>
-            <div class="hero-copy">Catastro, geodesia y conocimiento de campo, en un solo lugar.</div>
+            <div class="hero-copy">Herramientas y criterio para leer el territorio.</div>
           </div>
-          <div class="hero-badge">●&nbsp; Privado y local</div>
+          <div class="hero-badge">EDICIÓN DIGITAL<br>CATASTRO · GEODESIA</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -560,10 +565,10 @@ def main() -> None:
         st.markdown(
             """
             <div class="baul-brand">
-              <div class="baul-mark">⌂</div>
+                <div class="baul-mark">B.</div>
               <div>
                 <div class="baul-brand-name">BAÚL DE INGENIERÍA</div>
-                <div class="baul-brand-note">Espacio de trabajo geoespacial</div>
+                <div class="baul-brand-note">Bitácora técnica · Colombia</div>
               </div>
             </div>
             <div class="section-label">Configuración</div>
@@ -571,16 +576,16 @@ def main() -> None:
             unsafe_allow_html=True,
         )
         workflow = st.radio(
-            "Elige un flujo",
+            "Especialista",
             [
-                "Automático con Hombre en el medio",
-                "Consultar solo Catastro",
-                "Consultar solo Geodesia",
+                "Enrutamiento automático",
+                "Agente Catastro",
+                "Agente Geodesia",
             ],
             format_func=lambda option: {
-                "Automático con Hombre en el medio": "⚡  Automático",
-                "Consultar solo Catastro": "🏛️  Catastro",
-                "Consultar solo Geodesia": "🛰️  Geodesia",
+                "Enrutamiento automático": "Enrutamiento automático",
+                "Agente Catastro": "Agente Catastro",
+                "Agente Geodesia": "Agente Geodesia",
             }[option],
             label_visibility="collapsed",
             key="workflow",
@@ -591,17 +596,17 @@ def main() -> None:
             value="Experta",
             help="La respuesta experta incluye análisis, supuestos, pasos y cautelas.",
         )
-        server_online, model_ready = ollama_status()
-        status_class = "status-online" if server_online else "status-offline"
-        status_title = "Ollama conectado" if server_online else "Ollama desconectado"
+        api_configured, model_name = cloud_status()
+        status_class = "status-online" if api_configured else "status-offline"
+        status_title = "Credencial configurada" if api_configured else "Falta configurar la API"
         status_detail = (
-            f"{OLLAMA_MODEL} disponible"
-            if model_ready
-            else ("Modelo no descargado" if server_online else "Inicia Ollama para conversar")
+            f"Modelo alojado · {model_name}"
+            if api_configured
+            else "Añade OPENAI_API_KEY en Streamlit Secrets"
         )
         st.markdown(
             f"""
-            <div class="section-label">Motor local</div>
+            <div class="section-label">Servicio de respuesta</div>
             <div class="status-card">
               <div class="status-dot {status_class}"></div>
               <div>
@@ -612,22 +617,13 @@ def main() -> None:
             """,
             unsafe_allow_html=True,
         )
-        st.caption(f"Modelo · `{OLLAMA_MODEL}`")
-        st.caption("RAM objetivo · 8 GB · contexto 8K")
+        st.caption(f"Proveedor · OpenAI API · `{model_name}`")
+        st.caption("La inferencia se ejecuta en la nube, no en Ollama local.")
         st.markdown('<div class="section-label">Tu espacio</div>', unsafe_allow_html=True)
-        st.caption(f"📚  {sum(map(len, CONTEXT_FILES.values()))} archivos técnicos")
-        st.caption("🧠  Memoria local activa")
-        st.caption("🔎  Recuperación de evidencia + revisión técnica")
-        with st.expander("Últimas notas de memoria"):
-            memory_lines = [
-                line
-                for line in read_file(MEMORY_FILE, MAX_MEMORY_CHARS).splitlines()
-                if line.startswith("[")
-            ]
-            if memory_lines:
-                st.markdown("\n".join(f"- {line}" for line in memory_lines[-4:]))
-            else:
-                st.caption("Aún no hay notas guardadas.")
+        st.caption(f"{len(CONTEXT_FILES['Catastro'])} documentos catastrales")
+        st.caption(f"{len(CONTEXT_FILES['Geodesia'])} documentos geodésicos")
+        st.caption("Búsqueda local de evidencia · revisión técnica")
+        st.caption("La consulta se envía a OpenAI API; el chat no se persiste en este proyecto.")
         if st.button("Limpiar conversación"):
             if "conversations" in st.session_state:
                 st.session_state.conversations[workflow] = []
@@ -667,17 +663,17 @@ def main() -> None:
         with st.status("Preparando respuesta técnica...", expanded=False) as pipeline:
             try:
                 pipeline.update(
-                    label=f"Buscando evidencia de {', '.join(topics)}...",
+                    label=f"Asignado a {', '.join(topics)} · buscando evidencia...",
                     state="running",
                 )
-                draft = ollama_chat(request_messages)
+                draft = cloud_chat(request_messages)
                 pipeline.update(
                     label="Revisando rigor técnico, cifras y citas...",
                     state="running",
                 )
                 try:
                     answer = review_answer(prompt, draft, evidence, depth)
-                except requests.RequestException:
+                except (requests.RequestException, RuntimeError):
                     answer = (
                         draft
                         + "\n\n> No se pudo completar la segunda pasada de "
@@ -691,26 +687,39 @@ def main() -> None:
                 )
             except requests.ConnectionError:
                 answer = (
-                    "No pude conectar con Ollama. Confirma que Ollama esté "
-                    "ejecutándose en `localhost:11434` y que el modelo "
-                    "`qwen2.5:7b` esté descargado."
+                    "No fue posible conectar con el servicio de IA. Comprueba "
+                    "la conexión a internet e inténtalo de nuevo."
                 )
-                pipeline.update(label="Ollama no está disponible", state="error")
+                pipeline.update(label="Servicio de IA no disponible", state="error")
                 st.error(answer)
             except requests.Timeout:
-                answer = "La solicitud a Ollama excedió el tiempo de espera."
+                answer = "La solicitud excedió el tiempo de espera. Inténtalo otra vez."
                 pipeline.update(label="La solicitud excedió el tiempo", state="error")
                 st.error(answer)
             except requests.RequestException as exc:
-                answer = f"Error de la API de Ollama: {exc}"
-                pipeline.update(label="Error de comunicación con Ollama", state="error")
+                status_code = exc.response.status_code if exc.response is not None else None
+                if status_code == 401:
+                    answer = "La clave de API no fue aceptada. Revisa OPENAI_API_KEY en Secrets."
+                elif status_code == 429:
+                    answer = "El proveedor rechazó la solicitud por límite o saldo. Revisa tu cuenta de API."
+                elif status_code == 404:
+                    answer = f"No se encontró el modelo `{model_name}`. Revisa OPENAI_MODEL."
+                else:
+                    answer = "Hubo un problema al comunicarse con el proveedor de IA."
+                pipeline.update(label="Error de comunicación con el proveedor", state="error")
                 st.error(answer)
             except (ValueError, KeyError) as exc:
-                answer = f"No se pudo interpretar la respuesta de Ollama: {exc}"
-                pipeline.update(label="Respuesta de Ollama no válida", state="error")
+                answer = f"No se pudo interpretar la respuesta del proveedor: {exc}"
+                pipeline.update(label="Respuesta de IA no válida", state="error")
+                st.error(answer)
+            except RuntimeError as exc:
+                answer = str(exc)
+                pipeline.update(label="Configuración incompleta", state="error")
                 st.error(answer)
         if not answer.startswith(
-            ("No pude conectar", "La solicitud a Ollama", "Error de la API", "No se pudo interpretar")
+            ("No fue posible", "La solicitud excedió", "Hubo un problema",
+             "La clave de API", "El proveedor rechazó", "No se encontró el modelo",
+             "No se pudo interpretar", "Falta configurar")
         ):
             st.markdown(answer)
             if evidence:
@@ -726,19 +735,11 @@ def main() -> None:
         message_data["evidence"] = evidence
     messages.append(message_data)
     if answer.startswith(
-        ("No pude conectar", "La solicitud a Ollama", "Error de la API", "No se pudo interpretar")
+        ("No fue posible", "La solicitud excedió", "Hubo un problema",
+         "La clave de API", "El proveedor rechazó", "No se encontró el modelo",
+         "No se pudo interpretar", "Falta configurar")
     ):
         return
-
-    try:
-        note = extract_memory_note(prompt, answer)
-        save_memory_note(note)
-        if note:
-            st.toast("Guardé una conclusión breve en la memoria local.")
-    except (requests.RequestException, ValueError, OSError):
-        st.warning(
-            "La respuesta se mostró, pero no se pudo actualizar la memoria."
-        )
 
 
 if __name__ == "__main__":

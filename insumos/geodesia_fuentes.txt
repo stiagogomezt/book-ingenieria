@@ -1,0 +1,122 @@
+BAÚL DE INGENIERÍA | REFERENCIAS OFICIALES DE GEODESIA Y GNSS
+Consultadas: 2026-11-15
+Jurisdicción principal: Colombia
+
+CRITERIO
+Siempre identificar sistema de referencia, realización/marco, época, unidades,
+tipo de altura y operación efectuada. Una transformación requiere método
+oficial válido para marco, época, cobertura y precisión del caso. No confundir
+asignar CRS con reproyectar coordenadas.
+
+1. SISTEMA DE REFERENCIA Y MARCO MAGNA-SIRGAS
+Resolución IGAC 068 de 2005. Adopta MAGNA-SIRGAS como datum oficial; su
+disposición sobre el modelo geoidal fue modificada por la Resolución 515 de
+2026:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-068-de-2005
+
+Resolución IGAC 715 de 2018. Actualiza el Marco Geocéntrico Nacional de
+Referencia MAGNA-SIRGAS:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-715-2018
+
+Resolución IGAC 370 de 2021. Establece el sistema cartográfico oficial para
+Colombia, MAGNA-SIRGAS / Origen-Nacional, código EPSG:9377:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-370-de-2021
+
+Parámetros publicados en la Resolución 370 de 2021: Transversa de Mercator,
+elipsoide GRS80, latitud de origen 4° N, longitud de origen 73° W, falso Este
+5 000 000 m, falso Norte 2 000 000 m, factor de escala 0.9992, unidades metro.
+Revisar el acto y la definición EPSG actual para ejes, realización y alcance.
+
+Definición EPSG:9377. EPSG registra MAGNA-SIRGAS 2018 / Origen-Nacional,
+coordenadas proyectadas en metros y ejes Norte-Este; consulta la ficha y
+operación asociada para no suponer orden de ejes:
+https://epsg.org/crs_9377/index.html
+
+Portal IGAC de Origen Nacional, documentación, definiciones y herramientas:
+https://origen.igac.gov.co/
+https://origen.igac.gov.co/herramientas.html
+
+2. ALTURAS Y MODELO CUASIGEOIDAL
+Resolución IGAC 515 de 2026. Adopta el modelo QGeoidCOL2023 asociado a
+MAGNA-SIRGAS y modifica parcialmente la Resolución 068 de 2005. IGAC indica
+implementación progresiva por un año desde la publicación; durante el periodo
+transitorio se permite continuar con GEOCOL 2004. Verificar fecha de publicación
+en Diario Oficial y aplicación temporal concreta antes de exigir un modelo:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-515-de-2026
+
+Portal técnico de la Red Geodésica Nacional, modelo QGeoidCOL2023 y recursos:
+https://redgeodesica.igac.gov.co/documentacion/recursos/03_modelo_geoidal.html
+
+La relación aproximada de alturas suele expresarse H = h - N, con h altura
+elipsoidal, H altura física y N ondulación del modelo. Confirmar convención,
+datum vertical, implementación y exactitud del modelo empleado. No sumar o
+restar N sin validar signo y producto.
+
+3. RED GEODÉSICA NACIONAL
+Portal de la Red Geodésica Nacional, fuentes primarias de datos GNSS,
+documentación y servicios:
+https://redgeodesica.igac.gov.co/
+
+Red activa GNSS (estaciones continuas, RINEX, estado operativo y acceso a
+servicios):
+https://redgeodesica.igac.gov.co/redes/red_activa.html
+https://redgeodesica.igac.gov.co/documentacion/componentes-de-la-rgn/01_red_activa_gnss.html
+
+Resolución IGAC 1468 de 2021. Lineamientos técnicos mínimos para
+materialización, medición y administración de vértices geodésicos para su
+integración a la Red Geodésica Nacional:
+https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-1468-de-2021
+
+Procedimiento IGAC PC-GEO-04, Red Geodésica Nacional, vigente desde
+26-08-2026, versión 1:
+https://www.igac.gov.co/sites/default/files/listadomaestro/PC-GEO-04%20Red%20Geod%C3%A9sica%20Nacional.pdf
+
+Instructivo IGAC IN-GEO-PC04-03, módulo de procesamiento en línea con
+estaciones de referencia de operación continua, vigencia 26-08-2026:
+https://www.igac.gov.co/sites/default/files/listadomaestro/IN-GEO-PC04-03%20M%C3%B3dulo%20de%20Procesamiento.pdf
+
+Instructivos de procesamiento GNSS IGAC:
+- Leica Geo Office y Magnet Tools, IN-GEO-PC03-02:
+  https://www.igac.gov.co/sites/default/files/listadomaestro/IN-GEO-PC03-02%20Procesamiento%20de%20Informaci%C3%B3n%20GNSS.pdf
+- Leica Infinity, IN-GEO-PC03-03:
+  https://www.igac.gov.co/sites/default/files/listadomaestro/IN-GEO-PC03-03%20Procesamiento%20de%20Informaci%C3%B3n%20GNSS%20en%20Software%20Leica%20Infinity_0.pdf
+
+4. SIRGAS Y REALIZACIONES
+SIRGAS, densificaciones nacionales: la ficha de Colombia presenta MAGNA-SIRGAS
+asociado a ITRF2014, época 2018.0; confirmar versión vigente en IGAC y SIRGAS:
+https://sirgas.ipgh.org/pt/densificacoes-nacionais
+
+SIRGAS-CON, red y realizaciones:
+https://sirgas.ipgh.org/en/realizations/sirgas-con
+https://sirgas.ipgh.org/red-gnss/introduccion/
+
+Fichas EPSG de MAGNA-SIRGAS 2018:
+- EPSG:20046, geográfico 2D:
+  https://epsg.org/crs_20046/MAGNA-SIRGAS-2018.html
+- EPSG:20045, geográfico 3D:
+  https://epsg.org/crs_20045/MAGNA-SIRGAS-2018.html
+- EPSG:9377, proyectado Origen Nacional:
+  https://epsg.org/crs_9377/index.html
+
+5. CONTROL Y REPORTE TÉCNICO GNSS
+Para registrar y comunicar resultados, conservar archivos crudos/RINEX,
+identificador y estado de estaciones, tipo y calibración de antena, altura
+instrumental y método de medición, constelaciones, frecuencia, intervalo,
+duración, máscara, efemérides, software/versión, marco, época, estrategia de
+procesamiento, incertidumbre y controles independientes.
+
+No prometer exactitud genérica RTK/PPK/estático. La precisión depende de diseño,
+entorno, líneas base, observaciones, antena, solución, marco/época y control.
+Para resultados oficiales verificar la especificación aplicable y los reportes
+de calidad de la fuente/procesador.
+
+NOTAS PARA EL AGENTE GEODESIA
+- EPSG:9377 tiene ejes Norte, Este en la ficha EPSG consultada; confirmar el
+  orden de ejes que requiere el software, archivo y API.
+- Distinguir MAGNA-SIRGAS como nombre histórico/general de la realización
+  MAGNA-SIRGAS 2018 y su época. Para ingeniería de precisión no asumir que
+  EPSG:4686 y EPSG:20046 son intercambiables a nivel centimétrico.
+- La Resolución 515 de 2026 establece implementación progresiva de
+  QGeoidCOL2023. Revisar publicación efectiva y fecha antes de afirmar fin del
+  periodo de transición.
+- Declarar CRS horizontal y datum vertical por separado cuando corresponda.

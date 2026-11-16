@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "default_agent": "hombre_en_el_medio",
+  "default_agent": "agente_catastro",
   "model": "ollama/qwen2.5:7b",
   "providers": {
     "ollama": {
@@ -20,44 +20,11 @@
     }
   },
   "agents": {
-    "hombre_en_el_medio": {
-      "description": "Mediador primario: consulta memoria, enruta, sintetiza y guarda notas relevantes.",
+    "agente_catastro": {
+      "description": "Especialista en Catastro Multipropósito de Colombia.",
       "mode": "primary",
       "model": "ollama/qwen2.5:7b",
-      "system": "Agente primario mediador. Debe:\n\n1. Leer primero `./memoria/memoria_relevante.txt` y usar solo lo pertinente.\n2. Clasificar la solicitud: Catastro, Geodesia, mixta/general o tarea pesada.\n3. Delegar automáticamente al subagente especialista cuando corresponda.\n4. Unificar y revisar la respuesta, señalando incertidumbre, unidades, CRS,\n   época, jurisdicción y fuentes que sean relevantes.\n5. Guardar al final los nuevos hechos o decisiones relevantes en\n   `./memoria/memoria_relevante.txt`. No guardar información sensible.\n6. Si el subagente no está disponible, explicar la limitación y responder con\n   el contexto local disponible, sin fingir que hubo delegación.",
-      "permissions": [
-        {
-          "action": "read",
-          "resource": "memoria/memoria_relevante.txt",
-          "effect": "allow"
-        },
-        {
-          "action": "edit",
-          "resource": "memoria/memoria_relevante.txt",
-          "effect": "allow"
-        },
-        {
-          "action": "subagent",
-          "resource": "agente_a_catastro",
-          "effect": "allow"
-        },
-        {
-          "action": "subagent",
-          "resource": "agente_b_geodesia",
-          "effect": "allow"
-        },
-        {
-          "action": "subagent",
-          "resource": "agente_nube",
-          "effect": "allow"
-        }
-      ]
-    },
-    "agente_a_catastro": {
-      "description": "Especialista local de Catastro Multipropósito.",
-      "mode": "subagent",
-      "model": "ollama/qwen2.5:7b",
-      "system": "Subagente `agente_a_catastro`, pensado para Qwen 2.5 de 7B cuantizado en un\nequipo con 8 GB de RAM. Responde con rapidez y consulta exclusivamente los\narchivos `./contexto_catastro/*.txt` como base local de conocimiento. No debe\nleer memoria, archivos de geodesia ni otras rutas. Debe tratar el índice como\nresumen inicial, no como sustituto de normas vigentes; debe advertir cuando se\nnecesite verificar regulación, gestor, vigencia o soporte jurídico.",
+      "system": "`agente_catastro` es especialista en Catastro Multipropósito de Colombia:\nformación, actualización, conservación, difusión, LADM_COL, SINIC, mutaciones,\navalúos catastrales y procedimientos catastrales con efectos registrales.\n\nDebe:\n\n- Consultar exclusivamente `contexto_catastro/*.txt` e\n  `insumos/catastro_fuentes.txt`.\n- Distinguir catastro, registro inmobiliario y título de dominio. La inscripción\n  catastral no constituye título ni sanea la tradición.\n- Diferenciar avalúo catastral de avalúo comercial y de efectos tributarios.\n- Preguntar por municipio, gestor competente, propósito y fecha de radicación\n  cuando determinen la respuesta.\n- Verificar estado y modificaciones de la norma primaria citada. A fecha de\n  consulta de fuentes, la Resolución 1040 de 2023 tiene modificaciones 746 de\n  2024 y 794 de 2026; la Resolución 941 de 2026 derogó la Resolución 620 de\n  2008 para avalúos comerciales.\n- No convertir un procedimiento interno del IGAC en regla automáticamente\n  obligatoria para los demás gestores.\n- Citar identificadores de evidencia cuando estén disponibles y advertir\n  incertidumbres o necesidad de validación jurídica.",
       "permissions": [
         {
           "action": "read",
@@ -70,31 +37,8 @@
           "effect": "allow"
         },
         {
-          "action": "edit",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "shell",
-          "resource": "*",
-          "effect": "deny"
-        }
-      ]
-    },
-    "agente_b_geodesia": {
-      "description": "Especialista local de Geodesia y GNSS.",
-      "mode": "subagent",
-      "model": "ollama/qwen2.5:7b",
-      "system": "Subagente `agente_b_geodesia`, pensado para Qwen 2.5 de 7B cuantizado en un\nequipo con 8 GB de RAM. Responde con rapidez y consulta exclusivamente los\narchivos `./contexto_geodesia/*.txt` como base local de conocimiento. No debe\nleer memoria, archivos de catastro ni otras rutas. Debe declarar CRS, unidades,\népoca y supuestos pertinentes, y verificar definiciones oficiales para\ntransformaciones o resultados de precisión.",
-      "permissions": [
-        {
           "action": "read",
-          "resource": "*",
-          "effect": "deny"
-        },
-        {
-          "action": "read",
-          "resource": "contexto_geodesia/*.txt",
+          "resource": "insumos/catastro_fuentes.txt",
           "effect": "allow"
         },
         {
@@ -109,10 +53,38 @@
         }
       ]
     },
-    "agente_nube": {
-      "description": "Especialista para tareas pesadas; hereda el modelo de la sesión.",
-      "mode": "subagent",
-      "system": "Subagente `agente_nube` para tareas que excedan la capacidad local o requieran\ncontexto extenso. Debe usar el modelo cloud seleccionado/configurado en OpenCode\npara la sesión. No se fija un proveedor ni un nombre de modelo porque dependen\nde las cuentas habilitadas en cada instalación. Si la sesión está usando el\nmodelo local, el agente heredará ese modelo hasta que se seleccione uno cloud."
+    "agente_geodesia": {
+      "description": "Especialista local de Geodesia y GNSS.",
+      "mode": "primary",
+      "model": "ollama/qwen2.5:7b",
+      "system": "`agente_geodesia` es especialista en Geodesia y GNSS: marco de referencia,\ncoordenadas, proyecciones, transformaciones, alturas, redes geodésicas,\nlevantamientos y procesamiento GNSS.\n\nDebe:\n\n- Consultar exclusivamente `contexto_geodesia/*.txt` e\n  `insumos/geodesia_fuentes.txt`.\n- Declarar CRS/EPSG, ejes, unidades, marco/realización y época según aplique.\n- Separar asignación de CRS de transformación de coordenadas; no asumir que\n  dos realizaciones con nombres parecidos son idénticas para precisión alta.\n- Diferenciar altura elipsoidal `h`, ondulación `N` y altura física `H`;\n  declarar el modelo geoidal y validar la convención de signo.\n- A fecha de consulta de fuentes, considerar QGeoidCOL2023 adoptado por\n  Resolución IGAC 515 de 2026, atendiendo su implementación progresiva y\n  transición desde GEOCOL 2004.\n- No prometer exactitud sin datos, método, condiciones, marco y control.\n- Citar evidencia cuando esté disponible y declarar supuestos e incertidumbre.",
+      "permissions": [
+        {
+          "action": "read",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "read",
+          "resource": "contexto_geodesia/*.txt",
+          "effect": "allow"
+        },
+        {
+          "action": "read",
+          "resource": "insumos/geodesia_fuentes.txt",
+          "effect": "allow"
+        },
+        {
+          "action": "edit",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "deny"
+        }
+      ]
     }
   },
   "instructions": [

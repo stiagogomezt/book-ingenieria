@@ -14,7 +14,7 @@ Fuentes oficiales:
   adopta el modelo geoidal QGeoidCOL2023:
   https://redgeodesica.igac.gov.co/documentacion/recursos/01_normatividad.html
 - EPSG registry, CRS 9377:
-  https://epsg.org/crs_9377/MAGNA-SIRGAS-2018-CTM12.html
+  https://epsg.org/crs_9377/index.html
 
 1. SISTEMA, MARCO Y DATUM
 -------------------------
@@ -90,12 +90,19 @@ El signo y el campo disponible dependen de modelo, convención y software.
 No aplicar una ondulación sin confirmar su definición. Registrar modelo,
 versión, CRS vertical, punto de control, época y unidades.
 
-En 2026 el catálogo normativo de la Red Geodésica IGAC lista la Resolución
-0515 de 2026 que adopta QGeoidCOL2023 asociado a MAGNA-SIRGAS. El software
-MAGNA-SIRGAS PRO 7 ofrece interpolación según modelo y operación. IGAC también
-documenta grillas GEOCOL2004 y QGeoidCOL2023 en funcionalidades vigentes. No
-mezclar modelos ni citar GEOCOL2004 como único modelo actual sin verificar el
-producto y especificación contractual.
+En 2026 el IGAC adoptó QGeoidCOL2023 mediante la Resolución 515 de 2026,
+asociado a MAGNA-SIRGAS, y reemplaza GEOCOL 2004 como modelo oficial. La
+resolución establece implementación progresiva por un año desde la publicación;
+durante ese periodo se permite continuar usando GEOCOL 2004. Verificar la fecha
+de publicación en Diario Oficial, el estado del periodo transitorio y la
+disponibilidad de información técnica antes de prescribir un modelo para un
+proyecto. No mezclar modelos ni citar GEOCOL 2004 como única referencia actual.
+
+Fuentes oficiales:
+- Resolución IGAC 515 de 2026:
+  https://www.igac.gov.co/transparencia-y-acceso-a-la-informacion-publica/normograma/resolucion-515-de-2026
+- Documentación QGeoidCOL2023:
+  https://redgeodesica.igac.gov.co/documentacion/recursos/03_modelo_geoidal.html
 
 5. CONTROL DE CRS Y TRANSFORMACIONES
 ------------------------------------

@@ -1,37 +1,45 @@
-# Configuración declarativa
+# Configuración
 
-## Modelos
+## Agentes OpenCode
 
-- Motor local compartido: `ollama/qwen2.5:7b`, servido por Ollama en
+- Únicos agentes del proyecto: `agente_catastro` y `agente_geodesia`.
+- Modelo configurado para OpenCode: `ollama/qwen2.5:7b`, endpoint
   `http://localhost:11434/v1`.
-- Perfil objetivo: equipo con 8 GB de RAM. Usar una cuantización Ollama
-  compatible con esa memoria (por ejemplo Q4), controlar el contexto y cerrar
-  aplicaciones que compitan por RAM. El consumo real depende de la
-  cuantización, contexto y configuración.
-- Motor cloud: el modelo cloud habilitado y seleccionado en OpenCode para la
-  sesión. Este proyecto no inventa proveedor, modelo ni credenciales.
-  `agente_nube` hereda el modelo de la sesión, por lo que para trabajo cloud se
-  debe seleccionar un modelo cloud antes de delegar.
-- Interfaz Streamlit: `app_baul.py` llama directamente al endpoint local de
-  Ollama `http://localhost:11434/api/chat`, modelo `qwen2.5:7b`. No utiliza el
-  proveedor cloud ni lanza los subagentes OpenCode.
+- El modelo local solo es necesario si se usan los agentes desde OpenCode. La
+  app desplegada en Streamlit no llama a Ollama.
+- Contextos restringidos por especialidad:
+  `contexto_catastro/*.txt` más `insumos/catastro_fuentes.txt`, y
+  `contexto_geodesia/*.txt` más `insumos/geodesia_fuentes.txt`.
 
-## Contexto y memoria
+## Interfaz web y modelo alojado
 
-- Memoria directa: `./memoria/memoria_relevante.txt`.
-- Catastro: `./contexto_catastro/*.txt`.
-- Geodesia: `./contexto_geodesia/*.txt`.
-- Los agentes locales tienen instrucciones y permisos restringidos a su
-  carpeta de contexto. No se configuran servidores MCP externos.
-- Las rutas deben resolverse desde la raíz del proyecto.
-- La UI agrega contenido de memoria y contexto al prompt; limita la ventana de
-  Ollama con `num_ctx=8192`. La memoria se actualiza mediante una segunda
-  solicitud local de síntesis, que puede cometer errores y debe revisarse.
+- La app Streamlit consume OpenAI Chat Completions en
+  `https://api.openai.com/v1/chat/completions`.
+- Modelo por defecto: `gpt-5.4-mini`. Se puede cambiar con `OPENAI_MODEL`.
+- La credencial `OPENAI_API_KEY` se lee del servidor, mediante
+  `st.secrets` o variable de entorno. Nunca agregarla a Git ni al navegador.
+- Cada consulta aceptada realiza una llamada de generación y otra de revisión
+  técnica. Ambas son facturables según el uso y las tarifas vigentes del
+  proveedor. El uso real depende del largo del contexto y la salida.
+- La llamada incluye la pregunta, historial reciente y pasajes recuperados de
+  los insumos locales. No incluye el archivo de memoria ni almacena el chat en
+  el proyecto.
+- La búsqueda de fuentes ocurre localmente en los `.txt`; la app no navega
+  internet ni verifica por sí sola las actualizaciones de las páginas fuente.
 
-## Generación
+## Secretos locales
 
-`python parser_interpreta.py` interpreta encabezados de `Agents.md` y valores
-del motor local en este archivo, y genera `opencode.json` incluyendo el
-esquema oficial en `$schema`. El archivo describe agentes e instrucciones;
-la lectura y escritura de memoria se realizan mediante herramientas del agente,
-no por un proceso de sincronización automático del runtime.
+Para desarrollo local, crear `.streamlit/secrets.toml` (no versionar):
+
+```toml
+OPENAI_API_KEY = "reemplazar-con-una-clave-propia"
+OPENAI_MODEL = "gpt-5.4-mini"
+```
+
+En Streamlit Community Cloud, añadir los mismos campos en la sección Secrets de
+la configuración de la app.
+
+## Parser
+
+`python parser_interpreta.py` genera `opencode.json` desde `Agents.md` y
+`Config.md`. No contiene credenciales ni configura servidores MCP.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile the Baúl de Ingeniería Markdown definitions into opencode.json."""
+"""Compile the two Baúl specialist definitions into opencode.json."""
 
 from __future__ import annotations
 
@@ -36,17 +36,17 @@ def section(document: str, heading: str) -> str:
 
 def require_sections(agents_md: str, config_md: str) -> dict[str, str]:
     definitions = {
-        "hombre_en_el_medio": section(agents_md, "Hombre en el medio"),
-        "agente_a_catastro": section(agents_md, "Agente A Local: Catastro"),
-        "agente_b_geodesia": section(agents_md, "Agente B Local: Geodesia"),
-        "agente_nube": section(agents_md, "Agente en Nube"),
+        "agente_catastro": section(agents_md, "Agente Catastro"),
+        "agente_geodesia": section(agents_md, "Agente Geodesia"),
     }
     for name, text in definitions.items():
         if not text:
             raise ValueError(f"La sección {name} no puede estar vacía")
 
     local_model_match = re.search(
-        r"(?m)^-\s*Motor local compartido:\s*`([^`]+)`", config_md
+        r"(?m)^-\s*(?:Motor local compartido|Modelo configurado para OpenCode):"
+        r"\s*`([^`]+)`",
+        config_md,
     )
     endpoint_match = re.search(r"`(https?://localhost:11434/v1)`", config_md)
     if not local_model_match or not endpoint_match:
@@ -67,7 +67,7 @@ def build_config(definitions: dict[str, str]) -> dict[str, Any]:
 
     return {
         "$schema": SCHEMA,
-        "default_agent": "hombre_en_el_medio",
+        "default_agent": "agente_catastro",
         "model": local_model,
         "providers": {
             "ollama": {
@@ -82,47 +82,31 @@ def build_config(definitions: dict[str, str]) -> dict[str, Any]:
             }
         },
         "agents": {
-            "hombre_en_el_medio": {
-                "description": "Mediador primario: consulta memoria, enruta, sintetiza y guarda notas relevantes.",
+            "agente_catastro": {
+                "description": "Especialista en Catastro Multipropósito de Colombia.",
                 "mode": "primary",
                 "model": local_model,
-                "system": definitions["hombre_en_el_medio"],
-                "permissions": [
-                    {"action": "read", "resource": "memoria/memoria_relevante.txt", "effect": "allow"},
-                    {"action": "edit", "resource": "memoria/memoria_relevante.txt", "effect": "allow"},
-                    {"action": "subagent", "resource": "agente_a_catastro", "effect": "allow"},
-                    {"action": "subagent", "resource": "agente_b_geodesia", "effect": "allow"},
-                    {"action": "subagent", "resource": "agente_nube", "effect": "allow"},
-                ],
-            },
-            "agente_a_catastro": {
-                "description": "Especialista local de Catastro Multipropósito.",
-                "mode": "subagent",
-                "model": local_model,
-                "system": definitions["agente_a_catastro"],
+                "system": definitions["agente_catastro"],
                 "permissions": [
                     {"action": "read", "resource": "*", "effect": "deny"},
                     {"action": "read", "resource": "contexto_catastro/*.txt", "effect": "allow"},
+                    {"action": "read", "resource": "insumos/catastro_fuentes.txt", "effect": "allow"},
                     {"action": "edit", "resource": "*", "effect": "deny"},
                     {"action": "shell", "resource": "*", "effect": "deny"},
                 ],
             },
-            "agente_b_geodesia": {
+            "agente_geodesia": {
                 "description": "Especialista local de Geodesia y GNSS.",
-                "mode": "subagent",
+                "mode": "primary",
                 "model": local_model,
-                "system": definitions["agente_b_geodesia"],
+                "system": definitions["agente_geodesia"],
                 "permissions": [
                     {"action": "read", "resource": "*", "effect": "deny"},
                     {"action": "read", "resource": "contexto_geodesia/*.txt", "effect": "allow"},
+                    {"action": "read", "resource": "insumos/geodesia_fuentes.txt", "effect": "allow"},
                     {"action": "edit", "resource": "*", "effect": "deny"},
                     {"action": "shell", "resource": "*", "effect": "deny"},
                 ],
-            },
-            "agente_nube": {
-                "description": "Especialista para tareas pesadas; hereda el modelo de la sesión.",
-                "mode": "subagent",
-                "system": definitions["agente_nube"],
             },
         },
         "instructions": ["./Agents.md", "./Config.md"],
@@ -145,10 +129,8 @@ def main() -> None:
     if parsed.get("default_agent") not in parsed.get("agents", {}):
         raise ValueError("El agente primario configurado no existe")
     if set(parsed["agents"]) != {
-        "hombre_en_el_medio",
-        "agente_a_catastro",
-        "agente_b_geodesia",
-        "agente_nube",
+        "agente_catastro",
+        "agente_geodesia",
     }:
         raise ValueError("La configuración no contiene el conjunto esperado de agentes")
 

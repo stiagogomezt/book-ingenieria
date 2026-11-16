@@ -1,182 +1,75 @@
-# Bitácora de entrega: Baúl de Ingeniería
+# Bitácora de actualización: Baúl de Ingeniería
 
-## Resumen
+## Objetivo de esta entrega
 
-Se creó una base de proyecto OpenCode para consultas de Catastro
-Multipropósito y Geodesia. La configuración generada usa un modelo Ollama local
-Qwen 2.5 7B y define un agente mediador, dos especialistas locales y un agente
-para trabajo pesado. Los documentos `.txt` son contexto técnico inicial, no
-sustituyen normativa, especificaciones o fuentes oficiales vigentes.
+Corregir la dependencia errónea de Ollama local en la app web, definir solo los
+dos especialistas requeridos, mejorar la identidad visual y crear una carpeta
+de fuentes técnicas oficiales actualizadas.
 
-La documentación catastral y geodésica fue ampliada con referencias de
-entidades oficiales consultadas el 15 de noviembre de 2026. La síntesis
-identifica que la Resolución IGAC 1040 de 2023 ha sido modificada parcialmente
-por las Resoluciones 746 de 2024 y 794 de 2026.
+## Arquitectura
 
-## Componentes
+- La interfaz Streamlit consume OpenAI Chat Completions por HTTPS.
+- Modelo web predeterminado: `gpt-5.4-mini`, configurable por
+  `OPENAI_MODEL`.
+- La clave `OPENAI_API_KEY` se lee únicamente desde `st.secrets` o una variable
+  de entorno del servidor.
+- La configuración declarativa OpenCode define exactamente dos agentes:
+  `agente_catastro` y `agente_geodesia`. Ambos usan el modelo local declarado
+  en `Config.md`; Ollama se requiere solo para OpenCode, no para la app web.
+- El enrutamiento automático es una función de la UI, no un tercer agente.
 
-### Definición en lenguaje natural
+Cada consulta que llega al modelo hace una llamada de generación y otra de
+revisión. Ambas son facturables. La app envía pregunta, historial reciente y
+extractos locales a la API. No envía la memoria del proyecto y no persiste
+conversaciones ni notas automáticamente.
 
-`Agents.md` establece el flujo mediador: recuperar memoria, clasificar y
-delegar, sintetizar resultados y registrar conocimiento reutilizable. También
-define límites de lectura para los especialistas. La configuración instruye al
-agente, pero OpenCode no ejecuta por sí mismo una interceptación o guardado
-automático por turno; esas acciones dependen del uso de herramientas por el
-modelo.
+## Diseño
 
-`Config.md` deja documentados el motor local compartido
-`ollama/qwen2.5:7b`, su endpoint local, la intención de uso en 8 GB y la
-selección de un modelo cloud ya habilitado en OpenCode.
+Se reemplazaron el estilo genérico de tarjetas redondeadas y los mensajes de
+“privado/local” por una dirección visual editorial: papel cartográfico cálido,
+tipografía serif, retícula topográfica y señalética inspirada en una bitácora
+de campo. La portada muestra exclusivamente Catastro y Geodesia. La barra
+lateral indica configuración del proveedor, modelo, especialistas y alcance de
+privacidad.
 
-### Parser -> Interpreta
+## Referencias incorporadas
 
-`parser_interpreta.py` lee los encabezados requeridos de `Agents.md`, extrae el
-modelo y endpoint local desde `Config.md`, construye las definiciones OpenCode,
-comprueba estructura básica y sintaxis JSON, y escribe `opencode.json`. Incluye
-`$schema: https://opencode.ai/config.json` para validación por OpenCode y por
-editores. No requiere dependencias Python externas.
+`insumos/README_fuentes.md` explica jerarquía de fuentes y mantenimiento.
+`insumos/catastro_fuentes.txt` y `insumos/geodesia_fuentes.txt` contienen
+referencias enlazadas, notas temáticas y advertencias para la recuperación local.
 
-La validación local confirma sintaxis JSON e invariantes del proyecto. La
-validación contra el esquema remoto es responsabilidad del consumidor/editor
-OpenCode y no se reporta como una descarga o validación remota ejecutada.
+Fuentes oficiales verificadas al 15-11-2026 incluyen:
 
-### Hombre en el medio
+- Resoluciones IGAC 1040/2023, 746/2024 y 794/2026.
+- Resolución IGAC 301/2025 y modelo SINIC LADM_COL V1.0.
+- Resoluciones conjuntas 1101-11344/2020, 662-05346/2024 y 1456-09844/2024.
+- Resolución IGAC 941/2026, que derogó la Resolución 620/2008 para avalúos.
+- Resoluciones IGAC 370/2021, 1468/2021 y 515/2026.
+- Resolución IGAC 715/2018, Red Geodésica Nacional, EPSG y SIRGAS.
+- Documentación oficial de OpenAI API y Streamlit Community Cloud para modelo,
+  despliegue y secretos.
 
-`hombre_en_el_medio` es el agente primario. Su instrucción es consultar
-`memoria/memoria_relevante.txt`, enrutar consultas a especialistas, sintetizar y
-guardar notas estables y no sensibles. Tiene permisos de lectura y edición sobre
-el archivo de memoria y autorización para lanzar los tres subagentes.
+Se actualizaron las notas de avalúos para no presentar la Resolución 620/2008
+como vigente, y las de geodesia para explicar QGeoidCOL2023, la implementación
+progresiva y la transición desde GEOCOL 2004.
 
-### Memory
+## Verificaciones requeridas
 
-`memoria/memoria_relevante.txt` inicia con un encabezado histórico, una pauta
-para registrar hechos fechados y una nota inicial del proyecto. No almacena
-secretos ni conversaciones completas. En OpenCode, la persistencia requiere que
-el agente use sus herramientas de lectura y edición. En la UI, `app_baul.py`
-solicita una nota a Ollama y la agrega si el modelo no responde
-`NO_GUARDAR`; esa nota es heurística y requiere revisión.
+- Compilar `app_baul.py` y `parser_interpreta.py`.
+- Ejecutar smoke tests de interfaz y de los dos modos especialistas.
+- Generar `opencode.json` y confirmar que contenga exactamente dos agentes.
+- Simular llamadas a API para probar generación, revisión, credencial ausente,
+  error de conexión, HTTP 401 y HTTP 429.
+- No realizar una llamada real sin una clave API proporcionada por el usuario.
 
-### Agente A Local: Catastro
+## Limitaciones
 
-`agente_a_catastro` usa el modelo local compartido y tiene lectura acotada a
-`contexto_catastro/*.txt`; no puede editar ni ejecutar shell. El índice técnico
-cubre IGAC y gestión multipropósito, avalúo, mutaciones de primera a quinta
-clase, englobes, desenglobes, áreas y linderos, con advertencias de vigencia.
-
-### Agente B Local: Geodesia
-
-`agente_b_geodesia` usa el modelo local compartido y tiene lectura acotada a
-`contexto_geodesia/*.txt`; no puede editar ni ejecutar shell. El índice incluye
-parámetros elipsoidales GRS80/WGS84, MAGNA-SIRGAS, Origen-Nacional, ondulación
-geoidal y prácticas GNSS.
-
-### Agente en Nube sobre 8 GB de RAM
-
-`agente_nube` está destinado a tareas que superen la capacidad del equipo local.
-No se fija un proveedor ni se incluyen credenciales, porque dependen de la
-instalación del usuario. Al no fijar `model`, hereda el modelo de la sesión. Para
-que sea realmente cloud, se debe seleccionar primero un modelo cloud en OpenCode.
-La existencia de este agente no elimina límites de memoria de un modelo local
-si la sesión continúa seleccionada en Ollama.
-
-### Aplicación interactiva Streamlit
-
-`app_baul.py` implementa una UI con selección de flujo, historial de chat y
-mensajes Streamlit. Realiza solicitudes HTTP mediante `requests` al endpoint
-local `http://localhost:11434/api/chat` con `qwen2.5:7b`. Clasifica consultas,
-recupera hasta seis pasajes pertinentes con búsqueda léxica local, incluye
-memoria y presenta identificadores `[E#]` junto con el archivo de origen.
-Realiza una primera llamada de redacción y una segunda de revisión técnica y
-editorial. Después puede realizar una tercera llamada para proponer una nota
-breve no sensible para la memoria.
-
-La presentación incluye una identidad visual propia, estado de conexión/modelo
-en la barra lateral, pantalla de bienvenida con ejemplos, chat estilizado y
-comportamiento adaptable a pantallas pequeñas. Los estilos y tipografías usan
-recursos locales para mantener la interfaz sin dependencias visuales externas.
-
-El flujo automático de la aplicación es una clasificación/inyección de contexto
-mediante búsqueda local, con dos pasadas del mismo modelo Ollama. No invoca los
-subagentes de OpenCode ni el modelo cloud. La revisión no es una verificación
-independiente y la extracción de memoria no garantiza verdad; el archivo debe
-revisarse periódicamente. `requirements.txt` declara Streamlit y Requests;
-`LEAME.md` incluye instalación, ejecución y solución de problemas.
-
-## Fases
-
-| Fase | Resultado | Verificación |
-| --- | --- | --- |
-| Contexto | Índices técnicos iniciales de Catastro y Geodesia | Archivos `.txt` presentes en sus carpetas |
-| Fuentes | Investigación de resoluciones y guías IGAC/Función Pública | Enlaces y fecha de consulta en los índices |
-| Memoria | Registro histórico inicial | Archivo de memoria creado con formato de entradas |
-| Agentes | Definiciones natural-language y perfiles | Secciones y nombres presentes en `Agents.md` |
-| Parser | Compilador Python Markdown a configuración | Ejecución completa y salida de éxito |
-| Configuración | `opencode.json` compatible con estructura OpenCode | Lectura JSON y `$schema` oficial declarado |
-| Interfaz | Chat Streamlit directo con Ollama | `app_baul.py` y `requirements.txt` |
-| Prueba | Flujo local y delegación cloud | Pasos siguientes |
-
-## Instrucciones para probar
-
-1. Instalar Ollama y descargar el modelo:
-
-   ```powershell
-   ollama pull qwen2.5:7b
-   ```
-
-2. Ejecutar el parser desde la raíz del proyecto:
-
-   ```powershell
-   python parser_interpreta.py
-   ```
-
-   Debe imprimir `Configuración generada y validada como JSON`.
-
-3. Validar que Python puede volver a leer el JSON:
-
-   ```powershell
-   python -m json.tool opencode.json
-   ```
-
-4. Iniciar OpenCode en esta carpeta y comprobar que el agente primario sea
-   `hombre_en_el_medio`. Preguntar, por ejemplo: “¿Qué diferencia hay entre
-   englobe y desenglobe?” y confirmar que la respuesta use el índice catastral.
-
-5. Preguntar algo geodésico, por ejemplo: “¿Cómo se relacionan h, H y N?” y
-   confirmar el uso del contexto de Geodesia.
-
-6. Instalar y abrir la interfaz según `LEAME.md`. Verificar que responde a
-   consultas en los tres flujos y que la memoria solo recibe una nota breve
-   cuando el modelo propone una conclusión reutilizable.
-
-7. Para probar el agente cloud, conectar y seleccionar en OpenCode un modelo
-   cloud disponible, luego solicitar una tarea pesada. La selección de modelo
-   puede hacerse en la sesión; la UI Streamlit no usa el agente cloud.
-
-8. Para verificar memoria, pedir que se registre una preferencia no sensible,
-    después comprobar `memoria/memoria_relevante.txt` y confirmar que el agente
-    o la aplicación realmente ejecutó la escritura. En la UI la extracción de
-    notas puede ser imperfecta, así que revisar la entrada antes de conservarla.
-
-## Árbol entregado
-
-```text
-.
-├── Agents.md
-├── app_baul.py
-├── BITACORA_PROYECTO.md
-├── Config.md
-├── contexto_catastro/
-│   ├── 00_indice_catastro.txt
-│   ├── avaluos_y_linderos.txt
-│   └── igac_ladm_col.txt
-├── contexto_geodesia/
-│   ├── 00_indice_geodesia.txt
-│   ├── magna_sirgas_origen_nacional.txt
-│   └── procesamiento_gnss.txt
-├── LEAME.md
-├── memoria/
-│   └── memoria_relevante.txt
-├── opencode.json
-├── parser_interpreta.py
-└── requirements.txt
-```
+- OpenAI API requiere clave y facturación separadas de ChatGPT. No hay
+  credenciales en el repositorio ni en esta sesión.
+- No se ha creado un despliegue público de Streamlit Community Cloud. Requiere
+  que el propietario conecte GitHub y configure sus Secrets.
+- La interfaz no consulta páginas web en tiempo real. Las fuentes enlazadas
+  deben ser revisadas nuevamente antes de actuaciones catastrales, valuatorias
+  o geodésicas.
+- Las verificaciones de API son simuladas hasta que el usuario configure una
+  clave válida.
