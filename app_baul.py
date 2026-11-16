@@ -264,21 +264,37 @@ def build_system_prompt(
 
 def get_api_key() -> str:
     """Read the API credential from deployment secrets or the environment."""
+    env_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if env_key:
+        return env_key
+
+    if not any(
+        Path(path).is_file()
+        for path in st.config.get_option("secrets.files")
+    ):
+        return ""
     try:
         secret = st.secrets.get("OPENAI_API_KEY", "")
     except (AttributeError, KeyError, FileNotFoundError):
         secret = ""
-    return str(secret or os.environ.get("OPENAI_API_KEY", "")).strip()
+    return str(secret or "").strip()
 
 
 def get_model_name() -> str:
+    env_model = os.environ.get("OPENAI_MODEL", "").strip()
+    if env_model:
+        return env_model
+
+    if not any(
+        Path(path).is_file()
+        for path in st.config.get_option("secrets.files")
+    ):
+        return OPENAI_MODEL_DEFAULT
     try:
         secret = st.secrets.get("OPENAI_MODEL", "")
     except (AttributeError, KeyError, FileNotFoundError):
         secret = ""
-    return str(
-        secret or os.environ.get("OPENAI_MODEL", OPENAI_MODEL_DEFAULT)
-    ).strip()
+    return str(secret or OPENAI_MODEL_DEFAULT).strip()
 
 
 def cloud_status() -> tuple[bool, str]:
@@ -606,7 +622,7 @@ def main() -> None:
         )
         st.markdown(
             f"""
-            <div class="section-label">Servicio de respuesta</div>
+            <div class="section-label">Modelo de la app web</div>
             <div class="status-card">
               <div class="status-dot {status_class}"></div>
               <div>
@@ -618,7 +634,9 @@ def main() -> None:
             unsafe_allow_html=True,
         )
         st.caption(f"Proveedor · OpenAI API · `{model_name}`")
-        st.caption("La inferencia se ejecuta en la nube, no en Ollama local.")
+        st.caption(
+            "Esto no cambia los agentes OpenCode, que siguen usando Qwen local."
+        )
         st.markdown('<div class="section-label">Tu espacio</div>', unsafe_allow_html=True)
         st.caption(f"{len(CONTEXT_FILES['Catastro'])} documentos catastrales")
         st.caption(f"{len(CONTEXT_FILES['Geodesia'])} documentos geodésicos")
