@@ -491,9 +491,29 @@ def render_styles() -> None:
         .footer-note { color: #87938d; font-size: 11px; text-align: center; padding-top: 7px; }
         div.stButton > button {
           border-radius: 3px; border: 1px solid #d1cbbb; color: #39443b;
-          background: #faf9f4; font-weight: 600;
+          background: #faf9f4; font-weight: 600; white-space: normal;
+          height: auto; min-height: 3.2rem; text-align: left;
+          line-height: 1.35; font-size: .78rem;
         }
         div.stButton > button:hover { border-color: var(--teal); color: var(--orange); }
+        .about-card {
+          margin: 19px 0 18px; padding: 19px 22px;
+          background: #e8e6db; border: 1px solid #d4cdbd;
+          border-top: 2px solid var(--teal);
+        }
+        .about-kicker {
+          color: var(--orange); font-size: 10px; font-weight: 700;
+          letter-spacing: 1.7px; text-transform: uppercase; margin-bottom: 7px;
+        }
+        .about-title {
+          color: var(--ink); font: 700 20px/1.2 Georgia, 'Times New Roman', serif;
+          margin-bottom: 8px;
+        }
+        .about-copy { color: #555b51; font-size: 12px; line-height: 1.65; }
+        .suggestion-heading {
+          color: var(--teal); font-size: 10px; font-weight: 700;
+          letter-spacing: 1.5px; margin: 5px 0 8px;
+        }
         @media (max-width: 700px) {
           [data-testid="stMainBlockContainer"] { padding: 1.1rem 1rem 6rem; }
           .hero { align-items: flex-start; flex-direction: column; }
@@ -537,10 +557,58 @@ def render_welcome(workflow: str) -> None:
                 unsafe_allow_html=True,
             )
     st.markdown(
+        """
+        <div class="about-card">
+          <div class="about-kicker">Quiénes somos</div>
+          <div class="about-title">Una bitácora técnica para entender y gestionar el territorio.</div>
+          <div class="about-copy">
+            Baúl de Ingeniería es una iniciativa académica independiente que reúne
+            conocimiento y fuentes oficiales de Colombia para apoyar a estudiantes,
+            profesionales y equipos técnicos en Catastro Multipropósito y Geodesia.
+            Integra dos especialistas, evidencia documental consultable y Qwen local
+            para orientar el análisis. No somos una autoridad pública: las respuestas
+            son apoyo técnico, no reemplazan la norma vigente, el criterio profesional
+            ni la validación de la entidad competente.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="suggestion-heading">PREGUNTAS PARA EMPEZAR</div>',
+        unsafe_allow_html=True,
+    )
+    suggestions = [
+        "¿Qué es Baúl de Ingeniería, a quién está dirigido y cómo funcionan sus dos agentes?",
+        "¿Qué debo revisar antes de solicitar una rectificación de área o linderos?",
+        "¿Cuál es la diferencia entre avalúo catastral y comercial en Colombia?",
+        "¿Qué CRS corresponde a Origen-Nacional y cuál es el orden de ejes de EPSG:9377?",
+        "¿Cómo se relacionan la altura elipsoidal h, la ondulación N y la altura física H?",
+        "¿Qué datos de campo necesito para procesar y reportar un levantamiento GNSS?",
+    ]
+    for row_start in range(0, len(suggestions), 2):
+        suggestion_columns = st.columns(2)
+        for column, suggestion in zip(
+            suggestion_columns, suggestions[row_start : row_start + 2]
+        ):
+            with column:
+                st.button(
+                    suggestion,
+                    key=f"suggested_question_{suggestions.index(suggestion)}",
+                    use_container_width=True,
+                    on_click=select_suggested_question,
+                    args=(suggestion,),
+                )
+    st.markdown(
         f'<div class="footer-note">MODO {workflow.upper()} · '
         "Orientación técnica documentada. Confirma vigencia normativa y alcance profesional.</div>",
         unsafe_allow_html=True,
     )
+
+
+def select_suggested_question(question: str) -> None:
+    """Queue a starter question for submission in the current chat."""
+    st.session_state["pending_prompt"] = question
 
 
 def main() -> None:
@@ -639,7 +707,9 @@ def main() -> None:
         render_welcome(workflow)
     render_chat(messages)
 
-    prompt = st.chat_input("Escribe tu consulta técnica")
+    prompt = st.chat_input("Escribe tu consulta técnica", key="chat_prompt")
+    if not prompt:
+        prompt = st.session_state.pop("pending_prompt", None)
     if not prompt:
         return
 
