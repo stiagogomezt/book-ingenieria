@@ -52,6 +52,13 @@ streamlit run app_baul.py
 La aplicación abre la interfaz en el navegador. La API usada es
 `http://localhost:11434/api/chat`.
 
+## Interfaz
+
+La pantalla incluye un panel lateral para elegir el flujo, una tarjeta de
+estado que indica si Ollama y el modelo están disponibles, y una vista inicial
+con ejemplos de consultas. El diseño usa estilos locales y fuentes del sistema,
+sin depender de imágenes o fuentes remotas.
+
 ## Flujos disponibles
 
 - Automático con Hombre en el medio: inyecta memoria y ambos contextos. El

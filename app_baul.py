@@ -168,27 +168,264 @@ def render_chat(messages: list[dict[str, str]]) -> None:
             st.markdown(message["content"])
 
 
+def render_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        :root {
+          --ink: #172b35;
+          --muted: #687a7e;
+          --paper: #f7f8f5;
+          --line: #e4eae5;
+          --teal: #0e766e;
+          --teal-soft: #e5f3ef;
+          --orange: #d88745;
+        }
+        html, body, [class*="css"] {
+          font-family: 'Segoe UI Variable', 'Aptos', 'Segoe UI', sans-serif;
+          color: var(--ink);
+        }
+        [data-testid="stAppViewContainer"] { background: var(--paper); }
+        [data-testid="stHeader"] { background: transparent; }
+        [data-testid="stMainBlockContainer"] {
+          max-width: 1120px;
+          padding-top: 2.2rem;
+          padding-bottom: 7rem;
+        }
+        [data-testid="stSidebar"] {
+          background: #f0f3ef;
+          border-right: 1px solid var(--line);
+        }
+        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: .75rem; }
+        .baul-brand {
+          display: flex; align-items: center; gap: 12px;
+          padding: 8px 4px 22px; border-bottom: 1px solid #dce5df;
+          margin-bottom: 8px;
+        }
+        .baul-mark {
+          width: 42px; height: 42px; display: grid; place-items: center;
+          border-radius: 14px; background: var(--ink); color: #fff;
+          font-size: 21px; box-shadow: 0 6px 16px #172b3520;
+        }
+        .baul-brand-name { font: 800 15px 'Segoe UI Variable', 'Aptos', sans-serif; letter-spacing: -.3px; }
+        .baul-brand-note { color: var(--muted); font-size: 11px; margin-top: 2px; }
+        .hero {
+          padding: 10px 0 20px;
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 18px;
+        }
+        .hero-kicker {
+          color: var(--teal); text-transform: uppercase; letter-spacing: 1.5px;
+          font-size: 11px; font-weight: 700; margin-bottom: 9px;
+        }
+        .hero-title {
+          font: 800 clamp(30px, 4vw, 43px)/1.12 'Segoe UI Variable', 'Aptos', sans-serif;
+          letter-spacing: -1.8px; color: var(--ink); margin: 0;
+        }
+        .hero-copy { color: var(--muted); font-size: 15px; margin-top: 11px; }
+        .hero-badge {
+          white-space: nowrap; background: #fff; border: 1px solid var(--line);
+          border-radius: 999px; padding: 9px 13px; color: var(--teal);
+          font-size: 12px; font-weight: 700;
+        }
+        .section-label {
+          color: #82918c; font-size: 10px; letter-spacing: 1.4px;
+          font-weight: 700; text-transform: uppercase; margin: 7px 0 2px;
+        }
+        .status-card {
+          display: flex; align-items: center; gap: 10px;
+          border: 1px solid #dfe8e1; background: #fff; border-radius: 14px;
+          padding: 12px 13px; margin: 2px 0;
+        }
+        .status-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+        .status-online { background: #27a477; box-shadow: 0 0 0 4px #27a47720; }
+        .status-offline { background: #d88745; box-shadow: 0 0 0 4px #d8874520; }
+        .status-title { color: var(--ink); font-size: 12px; font-weight: 700; }
+        .status-detail { color: var(--muted); font-size: 10px; margin-top: 2px; }
+        .st-key-workflow div[role="radiogroup"] { gap: 7px; }
+        .st-key-workflow label {
+          background: #fff; border: 1px solid #e1e8e3; border-radius: 12px;
+          padding: 10px 12px; transition: .15s ease;
+        }
+        .st-key-workflow label:hover { border-color: #91bdb2; }
+        [data-testid="stChatMessage"] {
+          background: #fff; border: 1px solid var(--line);
+          border-radius: 18px; padding: 16px 18px; margin-bottom: 14px;
+          box-shadow: 0 4px 14px #19333308;
+        }
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
+          background: var(--teal-soft); border-color: #d0e8df;
+        }
+        [data-testid="stChatMessage"] p { line-height: 1.7; }
+        [data-testid="stChatInput"] {
+          border: 1px solid #d8e2dc; border-radius: 18px;
+          background: #fff; box-shadow: 0 8px 28px #1933330c;
+        }
+        [data-testid="stChatInput"]:focus-within {
+          border-color: #5caaa0; box-shadow: 0 0 0 3px #0e766e18;
+        }
+        .welcome {
+          border: 1px solid #e0e8e1; background: #fff; border-radius: 22px;
+          padding: 24px 25px 20px; margin: 18px 0 20px;
+          box-shadow: 0 12px 30px #18393308;
+        }
+        .welcome-title { font: 700 19px 'Segoe UI Variable', 'Aptos', sans-serif; margin-bottom: 5px; }
+        .welcome-copy { color: var(--muted); font-size: 13px; line-height: 1.6; }
+        .prompt-card {
+          height: 100%; min-height: 100px; background: #f9fbf8;
+          border: 1px solid #e5ece6; border-radius: 15px; padding: 14px;
+        }
+        .prompt-icon { font-size: 18px; margin-bottom: 8px; }
+        .prompt-title { font-size: 12px; font-weight: 700; color: var(--ink); }
+        .prompt-copy { color: var(--muted); font-size: 11px; line-height: 1.45; margin-top: 4px; }
+        .footer-note { color: #87938d; font-size: 11px; text-align: center; padding-top: 7px; }
+        div.stButton > button {
+          border-radius: 12px; border: 1px solid #dbe5de; color: #49605b;
+          background: #fff; font-weight: 600;
+        }
+        div.stButton > button:hover { border-color: #8bb9ad; color: var(--teal); }
+        @media (max-width: 700px) {
+          [data-testid="stMainBlockContainer"] { padding: 1.1rem 1rem 6rem; }
+          .hero { align-items: flex-start; flex-direction: column; }
+          .hero-title { letter-spacing: -1px; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+@st.cache_data(ttl=15, show_spinner=False)
+def ollama_status() -> tuple[bool, bool]:
+    """Check local availability without blocking the interface for long."""
+    try:
+        response = requests.get("http://localhost:11434/api/tags", timeout=1.5)
+        response.raise_for_status()
+        model_names = [
+            item.get("name", "")
+            for item in response.json().get("models", [])
+            if isinstance(item, dict)
+        ]
+        model_ready = any(
+            name == OLLAMA_MODEL or name.startswith(f"{OLLAMA_MODEL}-")
+            for name in model_names
+        )
+        return True, model_ready
+    except (requests.RequestException, ValueError, TypeError):
+        return False, False
+
+
+def render_welcome(workflow: str) -> None:
+    st.markdown(
+        """
+        <div class="welcome">
+          <div class="welcome-title">¿Qué vamos a resolver hoy?</div>
+          <div class="welcome-copy">
+            Consulta normativa catastral, sistemas de referencia o métodos de
+            levantamiento. El Baúl incorpora sus notas técnicas locales en cada
+            respuesta.
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    prompts = [
+        ("🏛️", "Catastro", "Resume los pasos técnicos de un desenglobe."),
+        ("🛰️", "Geodesia", "¿Qué parámetros tiene MAGNA-SIRGAS / Origen Nacional?"),
+        ("📐", "GNSS", "Compara RTK y estático para un levantamiento predial."),
+    ]
+    columns = st.columns(3)
+    for column, (icon, title, copy) in zip(columns, prompts):
+        with column:
+            st.markdown(
+                f"""
+                <div class="prompt-card">
+                  <div class="prompt-icon">{icon}</div>
+                  <div class="prompt-title">{title}</div>
+                  <div class="prompt-copy">{copy}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    st.markdown(
+        f'<div class="footer-note">Flujo activo: {workflow} · '
+        "Las respuestas son orientación técnica y deben contrastarse con fuentes oficiales.</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def main() -> None:
     st.set_page_config(page_title="Baúl de Ingeniería", page_icon="🧰", layout="wide")
-    st.title("Baúl de Ingeniería")
-    st.caption("Asistente técnico local con Ollama, contexto documental y memoria.")
+    render_styles()
+    st.markdown(
+        """
+        <div class="hero">
+          <div>
+            <div class="hero-kicker">Copiloto técnico · Colombia</div>
+            <h1 class="hero-title">Baúl de Ingeniería</h1>
+            <div class="hero-copy">Catastro, geodesia y conocimiento de campo, en un solo lugar.</div>
+          </div>
+          <div class="hero-badge">●&nbsp; Privado y local</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     with st.sidebar:
-        st.header("Flujo de trabajo")
+        st.markdown(
+            """
+            <div class="baul-brand">
+              <div class="baul-mark">⌂</div>
+              <div>
+                <div class="baul-brand-name">BAÚL DE INGENIERÍA</div>
+                <div class="baul-brand-note">Espacio de trabajo geoespacial</div>
+              </div>
+            </div>
+            <div class="section-label">Configuración</div>
+            """,
+            unsafe_allow_html=True,
+        )
         workflow = st.radio(
-            "Selecciona cómo consultar",
+            "Elige un flujo",
             [
                 "Automático con Hombre en el medio",
                 "Consultar solo Catastro",
                 "Consultar solo Geodesia",
             ],
+            format_func=lambda option: {
+                "Automático con Hombre en el medio": "⚡  Automático",
+                "Consultar solo Catastro": "🏛️  Catastro",
+                "Consultar solo Geodesia": "🛰️  Geodesia",
+            }[option],
+            label_visibility="collapsed",
+            key="workflow",
         )
-        st.caption(f"Modelo: `{OLLAMA_MODEL}`")
-        st.caption(f"API: `{OLLAMA_CHAT_URL}`")
-        st.info(
-            "El modo automático enruta por instrucciones dentro de una llamada "
-            "al modelo local. No inicia subagentes OpenCode independientes."
+        server_online, model_ready = ollama_status()
+        status_class = "status-online" if server_online else "status-offline"
+        status_title = "Ollama conectado" if server_online else "Ollama desconectado"
+        status_detail = (
+            f"{OLLAMA_MODEL} disponible"
+            if model_ready
+            else ("Modelo no descargado" if server_online else "Inicia Ollama para conversar")
         )
+        st.markdown(
+            f"""
+            <div class="section-label">Motor local</div>
+            <div class="status-card">
+              <div class="status-dot {status_class}"></div>
+              <div>
+                <div class="status-title">{status_title}</div>
+                <div class="status-detail">{status_detail}</div>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.caption(f"Modelo · `{OLLAMA_MODEL}`")
+        st.caption("RAM objetivo · 8 GB · contexto 8K")
+        st.markdown('<div class="section-label">Tu espacio</div>', unsafe_allow_html=True)
+        st.caption(f"📚  {sum(map(len, CONTEXT_FILES.values()))} archivos técnicos")
+        st.caption("🧠  Memoria local activa")
         if st.button("Limpiar conversación"):
             if "conversations" in st.session_state:
                 st.session_state.conversations[workflow] = []
@@ -197,6 +434,8 @@ def main() -> None:
     if "conversations" not in st.session_state:
         st.session_state.conversations = {}
     messages = st.session_state.conversations.setdefault(workflow, [])
+    if not messages:
+        render_welcome(workflow)
     render_chat(messages)
 
     prompt = st.chat_input("Escribe tu consulta técnica")

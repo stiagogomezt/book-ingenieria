@@ -88,6 +88,11 @@ memoria y los contextos de Catastro/Geodesia según el modo seleccionado.
 Después de responder, realiza una segunda llamada para proponer una nota breve
 no sensible y la agrega fechada a la memoria si el modelo devuelve una nota.
 
+La presentación incluye una identidad visual propia, estado de conexión/modelo
+en la barra lateral, pantalla de bienvenida con ejemplos, chat estilizado y
+comportamiento adaptable a pantallas pequeñas. Los estilos y tipografías usan
+recursos locales para mantener la interfaz sin dependencias visuales externas.
+
 El flujo automático de la aplicación es una clasificación/inyección de contexto
 en una llamada a Ollama. No invoca los subagentes de OpenCode ni el modelo cloud.
 La extracción de memoria no verifica la verdad de una conclusión, por lo que el
