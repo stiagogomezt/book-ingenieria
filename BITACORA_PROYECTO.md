@@ -208,6 +208,8 @@ copias locales que puedan quedar desactualizadas.
 | Archivo o carpeta | Función |
 | --- | --- |
 | `app_baul.py` | Interfaz Streamlit, perfiles, enrutamiento, recuperación de evidencia, conexión Ollama y revisión. |
+| `Iniciar_Baul.bat` | Lanzador de doble clic en Windows para instalar dependencias e iniciar Baúl localmente. |
+| `iniciar_baul.ps1` | Comprueba Python/Ollama/OpenCode/Qwen, crea el entorno y ejecuta los agentes en loopback. |
 | `Agents.md` | Propósito y restricciones de los dos agentes del proyecto. |
 | `Config.md` | Modelo, endpoint, perfiles, privacidad y flujo de aplicación. |
 | `opencode.json` | Configuración OpenCode generada para los dos agentes. |
@@ -358,6 +360,20 @@ versión concreta de OpenCode.
 - No se creó ni publicó una app de Streamlit Cloud: falta que el propietario
   conecte su cuenta y disponga de un endpoint OpenCode remoto protegido.
 
+### Fase F. Inicio sencillo desde el ZIP de GitHub
+
+- Se añadieron `Iniciar_Baul.bat` e `iniciar_baul.ps1` para instalar
+  dependencias Python y arrancar localmente los dos agentes OpenCode.
+- El iniciador verifica Python 3.10+, Ollama, OpenCode y los agentes definidos
+  en el proyecto.
+- Si no encuentra `qwen3:8b`, solicita permiso antes de descargar el modelo.
+- Genera una contraseña aleatoria en memoria para el servidor local, que queda
+  enlazado a `127.0.0.1`; no configura exposición pública ni guarda la clave.
+- Requiere que cada usuario instale Ollama, OpenCode y Qwen. Para uso sin
+  instalaciones en cada computador, se mantiene la opción Streamlit Cloud más
+  OpenCode remoto.
+- Pendiente: probar el iniciador completo en un segundo equipo Windows limpio.
+
 ## 10. Verificaciones ejecutadas
 
 - Compilación sintáctica de `app_baul.py` y `parser_interpreta.py`.
@@ -376,6 +392,8 @@ versión concreta de OpenCode.
 - Verificación simulada del mapeo de ambos IDs (`agente_catastro` y
   `agente_geodesia`), autenticación Bearer/Basic y rechazo de HTTP remoto.
 - Prueba Streamlit simulada del botón sugerido con backend OpenCode remoto.
+- Pendiente: ejecutar los iniciadores en un PC limpio con Python, Ollama y
+  OpenCode recién instalados. Se inspeccionó la sintaxis y los requisitos.
 - Pendiente: prueba extremo a extremo contra un servidor OpenCode real y
   protegido. No se dispone aún de URL, token ni workspace remoto.
 - Consulta real local corta a `qwen3:8b`, respuesta no vacía.

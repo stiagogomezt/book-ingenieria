@@ -17,6 +17,27 @@ OpenCode, y la persona usuaria solo necesita un navegador.
 
 ## Instalar y ejecutar localmente
 
+### Inicio sencillo en Windows
+
+1. Descarga el ZIP del repositorio y extrae toda la carpeta.
+2. Instala Python 3.10 o posterior, Ollama y OpenCode.
+3. Abre Ollama y deja que se inicie.
+4. Haz doble clic en `Iniciar_Baul.bat`.
+5. En el primer inicio, el programa crea el entorno Python e instala las
+   dependencias. Si falta `qwen3:8b`, pregunta antes de descargar varios GB.
+6. La ventana comprueba que OpenCode encuentre `agente_catastro` y
+   `agente_geodesia`, luego abre la app en `http://localhost:8501`.
+
+El iniciador genera una contraseña temporal para OpenCode en memoria, enlaza el
+servidor solo a `127.0.0.1` y la elimina del entorno al cerrar la app. Mantén la
+ventana abierta mientras uses Baúl. Este método procesa las consultas en el PC
+del usuario y no publica la app en internet.
+
+Cada usuario sí necesita instalar Ollama, OpenCode y Qwen localmente. El modelo
+ocupa varios GB y el rendimiento depende del computador. Para que las personas
+no instalen esos programas, usa el despliegue en Streamlit Community Cloud de
+la sección siguiente y configura un servidor OpenCode remoto.
+
 Desde la raíz del proyecto, en PowerShell:
 
 ```powershell
