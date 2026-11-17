@@ -19,6 +19,10 @@
   OpenCode). `OPENCODE_AUTH_SCHEME` acepta `bearer` (predeterminado, para un
   gateway/proxy) o `basic` (OpenCode nativo); con `basic`, el usuario es
   `OPENCODE_USERNAME` o `opencode` por defecto, y el token es la contraseña.
+- En OpenCode v2, configura esa contraseña en el host del agente mediante
+  `OPENCODE_PASSWORD`. Para una prueba local, OpenCode puede escuchar solo en
+  `127.0.0.1`; para Streamlit Cloud debe estar tras HTTPS y ser accesible desde
+  la aplicación.
 - En remoto la app exige HTTPS y token. El gateway debe validar el esquema de
   autenticación seleccionado, y restringir acceso al API. No exponer el
   servidor OpenCode ni Ollama directamente a Internet.
@@ -42,6 +46,9 @@
   los insumos locales. No incluye el archivo de memoria del proyecto.
 - La búsqueda ocurre localmente; la app no navega internet ni verifica por sí
   sola las actualizaciones de las páginas fuente.
+- Para publicar la interfaz, Streamlit Community Cloud puede desplegar
+  `app_baul.py` desde GitHub. Debe recibir sus secretos antes de aceptar
+  consultas; `localhost` en Cloud no apunta al computador del propietario.
 
 ## Parser
 

@@ -211,6 +211,7 @@ copias locales que puedan quedar desactualizadas.
 | `Agents.md` | Propósito y restricciones de los dos agentes del proyecto. |
 | `Config.md` | Modelo, endpoint, perfiles, privacidad y flujo de aplicación. |
 | `opencode.json` | Configuración OpenCode generada para los dos agentes. |
+| `.streamlit/secrets.toml.example` | Plantilla sin credenciales reales para configurar Streamlit Community Cloud. |
 | `parser_interpreta.py` | Genera `opencode.json` a partir de `Agents.md` y `Config.md`. |
 | `contexto_catastro/` | Notas temáticas locales de Catastro. |
 | `contexto_geodesia/` | Notas temáticas locales de Geodesia. |
@@ -344,6 +345,18 @@ versión concreta de OpenCode.
 - Sin `OPENCODE_BASE_URL`, se conserva el modo local anterior.
 - Aún no se ha probado una instancia real: faltan URL, credencial, workspace y
   servidor OpenCode provisionado.
+
+### Fase E. Preparación para Streamlit Community Cloud
+
+- Se documentó el despliegue desde el repositorio GitHub con `app_baul.py` como
+  archivo principal.
+- Se añadió `.streamlit/secrets.toml.example`, únicamente con valores ficticios.
+- Se documentó que `OPENCODE_WORKSPACE` corresponde al host OpenCode, no a
+  Streamlit Cloud.
+- Se aclaró la autenticación nativa de OpenCode v2 mediante
+  `OPENCODE_PASSWORD`, con HTTPS requerido desde Streamlit Cloud.
+- No se creó ni publicó una app de Streamlit Cloud: falta que el propietario
+  conecte su cuenta y disponga de un endpoint OpenCode remoto protegido.
 
 ## 10. Verificaciones ejecutadas
 

@@ -76,6 +76,31 @@ consulta y la elimina al terminar. La API de sesiones documentada por OpenCode
 incluye rutas experimentales, por lo que se debe validar la versión del
 servidor durante el despliegue.
 
+## Publicar desde GitHub en Streamlit Community Cloud
+
+1. Sube o fusiona la rama que contiene los cambios en tu repositorio GitHub.
+2. Entra en Streamlit Community Cloud y elige **Create app**.
+3. Selecciona el repositorio `stiagogomezt/book-ingenieria`, la rama
+   `feat/baul-ingenieria` y el archivo principal `app_baul.py`.
+4. En **Advanced settings / Secrets**, pega la configuración real basada en
+   [.streamlit/secrets.toml.example](.streamlit/secrets.toml.example).
+   No pegues valores de ejemplo y no subas credenciales al repositorio.
+5. Despliega la app. Streamlit Cloud proporcionará el enlace HTTPS.
+
+La configuración de ejemplo requiere una dirección HTTPS real para
+`OPENCODE_BASE_URL`, el secreto de acceso correspondiente y la ruta absoluta del
+workspace en la máquina OpenCode. El workspace no es una ruta de Streamlit
+Cloud. En OpenCode v2, si se usa autenticación Basic nativa, inicia el servidor
+con `OPENCODE_PASSWORD` y coloca esa misma contraseña en
+`OPENCODE_API_TOKEN`, junto con `OPENCODE_AUTH_SCHEME = "basic"`.
+
+No basta con escoger **Deploy** en Streamlit Cloud: sin OpenCode accesible por
+HTTPS y estos secretos, la interfaz se publica, pero las consultas no podrán
+llegar a los agentes. No uses `localhost` como `OPENCODE_BASE_URL` en Cloud.
+OpenCode y Ollama deben ejecutarse en el servidor remoto, no en la instancia de
+Streamlit. Protege también el acceso de las personas usuarias a la app, porque
+cada consulta utiliza los recursos del servidor de inferencia.
+
 ## Especialistas y respuestas
 
 - `Enrutamiento automático`: identifica el ámbito de la consulta y usa Catastro,
